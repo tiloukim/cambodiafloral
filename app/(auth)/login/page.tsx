@@ -48,7 +48,7 @@ export default function LoginPage() {
       <div style={{
         background: '#fff',
         borderRadius: 24,
-        padding: '48px 40px',
+        padding: 'clamp(32px, 5vw, 48px) clamp(20px, 5vw, 40px)',
         maxWidth: 420,
         width: '100%',
         boxShadow: '0 8px 32px rgba(236,72,153,.1)',

@@ -54,7 +54,7 @@ export default function AccountPage() {
           marginBottom: 32,
         }}>
           <h2 style={{ fontSize: 18, fontWeight: 700, color: '#4A3040', marginBottom: 16 }}>Profile</h2>
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16 }}>
+          <div className="grid-profile">
             <div>
               <div style={{ fontSize: 12, fontWeight: 600, color: '#9C7A8E', textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: 4 }}>Name</div>
               <div style={{ fontSize: 15, color: '#4A3040', fontWeight: 500 }}>{customer?.name || '--'}</div>

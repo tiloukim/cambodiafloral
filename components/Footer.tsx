@@ -11,7 +11,7 @@ export default function Footer() {
         maxWidth: 1000,
         margin: '0 auto',
         display: 'grid',
-        gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))',
+        gridTemplateColumns: 'repeat(auto-fit, minmax(min(180px, 100%), 1fr))',
         gap: 32,
         marginBottom: 32,
       }}>

@@ -81,11 +81,7 @@ export default function ProductDetailPage() {
           &larr; Back
         </button>
 
-        <div style={{
-          display: 'grid',
-          gridTemplateColumns: 'repeat(auto-fit, minmax(340px, 1fr))',
-          gap: 48,
-        }}>
+        <div className="grid-product-detail">
           {/* Images */}
           <div>
             <div style={{

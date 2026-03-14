@@ -61,3 +61,57 @@ body {
 .admin-table tr:hover { background: #FFF8FC; }
 .admin-sub-text { font-size: 12px; color: #9C7A8E; }
 .admin-section-header { display: flex; align-items: center; justify-content: space-between; }
+
+/* Mobile Responsive */
+@media (max-width: 768px) {
+  .admin-sidebar { display: none; }
+  .admin-main { margin-left: 0; }
+  .admin-header { padding: 16px 16px; }
+  .admin-content { padding: 16px; }
+}
+
+/* Navbar mobile */
+.nav-links { display: flex; align-items: center; gap: 24px; }
+.nav-hamburger { display: none; background: none; border: none; font-size: 24px; cursor: pointer; color: #4A3040; padding: 4px; }
+.nav-mobile-menu {
+  display: none;
+  position: absolute;
+  top: 64px;
+  left: 0;
+  right: 0;
+  background: #fff;
+  border-bottom: 1px solid #FFE4EF;
+  padding: 16px 20px;
+  box-shadow: 0 8px 24px rgba(0,0,0,.06);
+  flex-direction: column;
+  gap: 12px;
+  z-index: 49;
+}
+.nav-mobile-menu.open { display: flex; }
+
+@media (max-width: 640px) {
+  .nav-links { display: none; }
+  .nav-hamburger { display: block; }
+}
+
+/* Grid responsive helpers */
+.grid-cart { display: grid; grid-template-columns: 1fr 320px; gap: 32px; align-items: start; }
+.grid-checkout { display: grid; grid-template-columns: 1fr 340px; gap: 32px; align-items: start; }
+.grid-product-detail { display: grid; grid-template-columns: repeat(auto-fit, minmax(340px, 1fr)); gap: 48px; }
+.grid-form-2col { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+.grid-profile { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+.grid-order-info { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+.timeline-row { display: flex; align-items: center; justify-content: space-between; position: relative; }
+
+@media (max-width: 640px) {
+  .grid-cart { grid-template-columns: 1fr; }
+  .grid-checkout { grid-template-columns: 1fr; }
+  .grid-product-detail { grid-template-columns: 1fr; gap: 24px; }
+  .grid-form-2col { grid-template-columns: 1fr; }
+  .grid-profile { grid-template-columns: 1fr; }
+  .grid-order-info { grid-template-columns: 1fr; }
+  .timeline-row { flex-wrap: wrap; gap: 8px; justify-content: center; }
+  .timeline-step-label { font-size: 9px !important; max-width: 56px !important; }
+  .timeline-dot { width: 26px !important; height: 26px !important; font-size: 11px !important; }
+  .timeline-bar { display: none; }
+}

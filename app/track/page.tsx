@@ -144,8 +144,8 @@ function TrackContent() {
                 padding: 28,
                 marginBottom: 24,
               }}>
-                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', position: 'relative' }}>
-                  <div style={{
+                <div className="timeline-row">
+                  <div className="timeline-bar" style={{
                     position: 'absolute',
                     top: 16,
                     left: 24,
@@ -163,7 +163,7 @@ function TrackContent() {
                   </div>
                   {TIMELINE_STEPS.map((step, i) => (
                     <div key={step} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', zIndex: 1 }}>
-                      <div style={{
+                      <div className="timeline-dot" style={{
                         width: 32,
                         height: 32,
                         borderRadius: '50%',
@@ -178,7 +178,7 @@ function TrackContent() {
                       }}>
                         {i <= currentStep ? '✓' : i + 1}
                       </div>
-                      <span style={{
+                      <span className="timeline-step-label" style={{
                         fontSize: 11,
                         fontWeight: 600,
                         color: i <= currentStep ? '#EC4899' : '#C9A0B4',
@@ -194,7 +194,7 @@ function TrackContent() {
               </div>
             )}
 
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 20 }}>
+            <div className="grid-order-info">
               <div style={{ background: '#fff', borderRadius: 16, border: '1px solid #FFE4EF', padding: 20 }}>
                 <h3 style={{ fontSize: 14, fontWeight: 700, color: '#4A3040', marginBottom: 8 }}>Recipient</h3>
                 <div style={{ fontSize: 13, color: '#7A5A6A', lineHeight: 1.8 }}>

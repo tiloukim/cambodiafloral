@@ -39,7 +39,7 @@ export default function Home() {
       {/* Hero */}
       <section style={{
         background: 'linear-gradient(135deg, #FFF0F5 0%, #FFE4EF 50%, #FECDD3 100%)',
-        padding: '100px 20px 80px',
+        padding: 'clamp(60px, 10vw, 100px) 20px clamp(40px, 8vw, 80px)',
         textAlign: 'center',
       }}>
         <div style={{ maxWidth: 700, margin: '0 auto' }}>
@@ -95,7 +95,7 @@ export default function Home() {
           </div>
           <div style={{
             display: 'grid',
-            gridTemplateColumns: 'repeat(auto-fill, minmax(260px, 1fr))',
+            gridTemplateColumns: 'repeat(auto-fill, minmax(min(260px, 100%), 1fr))',
             gap: 24,
           }}>
             {products.map(p => (
@@ -136,7 +136,7 @@ export default function Home() {
           </div>
           <div style={{
             display: 'grid',
-            gridTemplateColumns: 'repeat(auto-fill, minmax(150px, 1fr))',
+            gridTemplateColumns: 'repeat(auto-fill, minmax(min(140px, 45%), 1fr))',
             gap: 16,
           }}>
             {OCCASIONS.map(o => (
@@ -176,7 +176,7 @@ export default function Home() {
         </div>
         <div style={{
           display: 'grid',
-          gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))',
+          gridTemplateColumns: 'repeat(auto-fit, minmax(min(240px, 100%), 1fr))',
           gap: 32,
         }}>
           {STEPS.map(s => (

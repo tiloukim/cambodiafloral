@@ -135,12 +135,12 @@ export default function CheckoutPage() {
         </h1>
 
         <form onSubmit={handlePlaceOrder}>
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 340px', gap: 32, alignItems: 'start' }}>
+          <div className="grid-checkout">
             <div style={{ display: 'flex', flexDirection: 'column', gap: 28 }}>
               {/* Sender Info */}
               <div style={{ background: '#fff', borderRadius: 16, border: '1px solid #FFE4EF', padding: 24 }}>
                 <h2 style={{ fontSize: 18, fontWeight: 700, color: '#4A3040', marginBottom: 20 }}>Sender Information</h2>
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 14 }}>
+                <div className="grid-form-2col">
                   <div>
                     <label style={labelStyle}>Your Name *</label>
                     <input type="text" value={senderName} onChange={e => setSenderName(e.target.value)} required style={inputStyle} placeholder="John Smith" />
@@ -163,7 +163,7 @@ export default function CheckoutPage() {
               {/* Recipient Info */}
               <div style={{ background: '#fff', borderRadius: 16, border: '1px solid #FFE4EF', padding: 24 }}>
                 <h2 style={{ fontSize: 18, fontWeight: 700, color: '#4A3040', marginBottom: 20 }}>Recipient Information</h2>
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 14 }}>
+                <div className="grid-form-2col">
                   <div>
                     <label style={labelStyle}>Recipient Name *</label>
                     <input type="text" value={recipientName} onChange={e => setRecipientName(e.target.value)} required style={inputStyle} placeholder="Sophea Chan" />

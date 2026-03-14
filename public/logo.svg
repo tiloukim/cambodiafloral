@@ -1,0 +1,47 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200" width="200" height="200">
+  <defs>
+    <linearGradient id="petal1" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#F472B6"/>
+      <stop offset="100%" style="stop-color:#EC4899"/>
+    </linearGradient>
+    <linearGradient id="petal2" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#EC4899"/>
+      <stop offset="100%" style="stop-color:#DB2777"/>
+    </linearGradient>
+    <linearGradient id="petal3" x1="0%" y1="100%" x2="100%" y2="0%">
+      <stop offset="0%" style="stop-color:#FB7185"/>
+      <stop offset="100%" style="stop-color:#F472B6"/>
+    </linearGradient>
+    <linearGradient id="center" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#FDE68A"/>
+      <stop offset="100%" style="stop-color:#F59E0B"/>
+    </linearGradient>
+    <linearGradient id="leaf" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#86EFAC"/>
+      <stop offset="100%" style="stop-color:#22C55E"/>
+    </linearGradient>
+  </defs>
+  <!-- Petals - 5 petals arranged in a circle -->
+  <ellipse cx="100" cy="58" rx="24" ry="36" fill="url(#petal1)" transform="rotate(0 100 100)" opacity="0.95"/>
+  <ellipse cx="100" cy="58" rx="24" ry="36" fill="url(#petal2)" transform="rotate(72 100 100)" opacity="0.9"/>
+  <ellipse cx="100" cy="58" rx="24" ry="36" fill="url(#petal3)" transform="rotate(144 100 100)" opacity="0.95"/>
+  <ellipse cx="100" cy="58" rx="24" ry="36" fill="url(#petal1)" transform="rotate(216 100 100)" opacity="0.9"/>
+  <ellipse cx="100" cy="58" rx="24" ry="36" fill="url(#petal2)" transform="rotate(288 100 100)" opacity="0.95"/>
+  <!-- Inner petals (smaller, lighter) -->
+  <ellipse cx="100" cy="68" rx="16" ry="24" fill="#FBCFE8" transform="rotate(36 100 100)" opacity="0.7"/>
+  <ellipse cx="100" cy="68" rx="16" ry="24" fill="#FBCFE8" transform="rotate(108 100 100)" opacity="0.6"/>
+  <ellipse cx="100" cy="68" rx="16" ry="24" fill="#FBCFE8" transform="rotate(180 100 100)" opacity="0.7"/>
+  <ellipse cx="100" cy="68" rx="16" ry="24" fill="#FBCFE8" transform="rotate(252 100 100)" opacity="0.6"/>
+  <ellipse cx="100" cy="68" rx="16" ry="24" fill="#FBCFE8" transform="rotate(324 100 100)" opacity="0.7"/>
+  <!-- Center -->
+  <circle cx="100" cy="100" r="16" fill="url(#center)"/>
+  <circle cx="100" cy="100" r="10" fill="#FDE68A" opacity="0.6"/>
+  <!-- Stem -->
+  <path d="M100 116 Q98 145 96 175" stroke="#22C55E" stroke-width="4" fill="none" stroke-linecap="round"/>
+  <!-- Left leaf -->
+  <path d="M96 148 Q78 138 68 125 Q80 132 96 148Z" fill="url(#leaf)" opacity="0.9"/>
+  <path d="M96 148 Q82 136 72 127" stroke="#16A34A" stroke-width="0.8" fill="none" opacity="0.5"/>
+  <!-- Right leaf -->
+  <path d="M98 158 Q118 148 128 135 Q116 142 98 158Z" fill="url(#leaf)" opacity="0.85"/>
+  <path d="M98 158 Q114 146 124 138" stroke="#16A34A" stroke-width="0.8" fill="none" opacity="0.5"/>
+</svg>

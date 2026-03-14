@@ -7,7 +7,7 @@ export default function Footer() {
       color: '#C9A0B4',
       padding: '48px 20px 24px',
     }}>
-      <div style={{
+      <div className="footer-grid" style={{
         maxWidth: 1000,
         margin: '0 auto',
         display: 'grid',
@@ -15,21 +15,23 @@ export default function Footer() {
         gap: 32,
         marginBottom: 32,
       }}>
-        <div>
-          <h3 style={{
-            fontFamily: 'var(--font-playfair), serif',
-            fontSize: 20,
-            fontWeight: 700,
-            color: '#F9A8D4',
-            marginBottom: 12,
-          }}>
-            Cambodia Floral
-          </h3>
+        <div className="footer-col">
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 12 }}>
+            <img src="/logo.svg" alt="Cambodia Floral" style={{ width: 32, height: 32 }} />
+            <h3 style={{
+              fontFamily: 'var(--font-playfair), serif',
+              fontSize: 20,
+              fontWeight: 700,
+              color: '#F9A8D4',
+            }}>
+              Cambodia Floral
+            </h3>
+          </div>
           <p style={{ fontSize: 13, lineHeight: 1.6 }}>
             Delivering fresh, beautiful flowers across Cambodia. Bringing smiles from anywhere in the world to your loved ones.
           </p>
         </div>
-        <div>
+        <div className="footer-col">
           <h4 style={{ fontSize: 13, fontWeight: 700, color: '#F9A8D4', marginBottom: 12, textTransform: 'uppercase', letterSpacing: '1px' }}>Shop</h4>
           <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
             <Link href="/shop" style={{ fontSize: 13, color: '#C9A0B4', textDecoration: 'none' }}>All Flowers</Link>
@@ -38,14 +40,17 @@ export default function Footer() {
             <Link href="/shop?category=baskets" style={{ fontSize: 13, color: '#C9A0B4', textDecoration: 'none' }}>Gift Baskets</Link>
           </div>
         </div>
-        <div>
-          <h4 style={{ fontSize: 13, fontWeight: 700, color: '#F9A8D4', marginBottom: 12, textTransform: 'uppercase', letterSpacing: '1px' }}>Help</h4>
+        <div className="footer-col">
+          <h4 style={{ fontSize: 13, fontWeight: 700, color: '#F9A8D4', marginBottom: 12, textTransform: 'uppercase', letterSpacing: '1px' }}>Company</h4>
           <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+            <Link href="/about" style={{ fontSize: 13, color: '#C9A0B4', textDecoration: 'none' }}>About Us</Link>
+            <Link href="/contact" style={{ fontSize: 13, color: '#C9A0B4', textDecoration: 'none' }}>Contact</Link>
+            <Link href="/privacy" style={{ fontSize: 13, color: '#C9A0B4', textDecoration: 'none' }}>Privacy Policy</Link>
             <Link href="/track" style={{ fontSize: 13, color: '#C9A0B4', textDecoration: 'none' }}>Track Order</Link>
             <Link href="/account" style={{ fontSize: 13, color: '#C9A0B4', textDecoration: 'none' }}>My Account</Link>
           </div>
         </div>
-        <div>
+        <div className="footer-col">
           <h4 style={{ fontSize: 13, fontWeight: 700, color: '#F9A8D4', marginBottom: 12, textTransform: 'uppercase', letterSpacing: '1px' }}>Delivery Areas</h4>
           <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
             <span style={{ fontSize: 13 }}>Phnom Penh</span>

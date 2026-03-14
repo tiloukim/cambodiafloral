@@ -48,18 +48,23 @@ export default function Navbar() {
         height: 64,
       }}>
         <Link href="/" style={{
+          display: 'flex',
+          alignItems: 'center',
+          gap: 8,
           fontFamily: 'var(--font-playfair), serif',
           fontSize: 22,
           fontWeight: 700,
           color: '#DB2777',
           textDecoration: 'none',
         }}>
+          <img src="/logo.svg" alt="" style={{ width: 32, height: 32 }} />
           Cambodia Floral
         </Link>
 
         {/* Desktop nav */}
         <div className="nav-links">
           <Link href="/shop" style={navLinkStyle}>Shop</Link>
+          <Link href="/about" style={navLinkStyle}>About</Link>
           <Link href="/track" style={navLinkStyle}>Track Order</Link>
 
           <Link href="/cart" style={{
@@ -176,6 +181,7 @@ export default function Navbar() {
       {/* Mobile menu */}
       <div className={`nav-mobile-menu ${mobileOpen ? 'open' : ''}`}>
         <Link href="/shop" onClick={() => setMobileOpen(false)} style={navLinkStyle}>Shop</Link>
+        <Link href="/about" onClick={() => setMobileOpen(false)} style={navLinkStyle}>About</Link>
         <Link href="/track" onClick={() => setMobileOpen(false)} style={navLinkStyle}>Track Order</Link>
         {user ? (
           <>

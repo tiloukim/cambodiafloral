@@ -14,6 +14,9 @@ body {
   to { opacity: 1; transform: translateY(0); }
 }
 
+/* Admin FAB */
+.admin-fab:hover { transform: translateY(-2px); box-shadow: 0 8px 28px rgba(236,72,153,.5) !important; }
+
 .pc { transition: transform 0.3s, box-shadow 0.3s; }
 .pc:hover { transform: translateY(-5px); box-shadow: 0 12px 36px rgba(236,72,153,.15); }
 .pc:hover .pi { transform: scale(1.03); }
@@ -92,6 +95,10 @@ body {
 @media (max-width: 640px) {
   .nav-links { display: none; }
   .nav-hamburger { display: block; }
+  .footer-grid { text-align: center; }
+  .footer-col { align-items: center; }
+  .footer-col > div { align-items: center; }
+  .footer-col > div[style] { justify-content: center; }
 }
 
 /* Grid responsive helpers */

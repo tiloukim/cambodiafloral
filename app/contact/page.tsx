@@ -26,7 +26,7 @@ export default function ContactPage() {
   const renderCaptcha = useCallback(() => {
     if (window.turnstile && captchaRef.current && !widgetIdRef.current) {
       widgetIdRef.current = window.turnstile.render(captchaRef.current, {
-        sitekey: '0x4AAAAAACq6o9kJIJPp0CIw',
+        sitekey: '0x4AAAAAACq7DsjA4vjgSMuc',
         callback: (token: string) => setCaptchaToken(token),
         'expired-callback': () => setCaptchaToken(''),
         theme: 'light',

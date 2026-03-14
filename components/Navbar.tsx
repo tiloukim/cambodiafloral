@@ -23,7 +23,7 @@ export default function Navbar() {
   }, [])
 
   const navLinkStyle: React.CSSProperties = {
-    fontSize: 14,
+    fontSize: 21,
     fontWeight: 600,
     color: '#4A3040',
     textDecoration: 'none',
@@ -37,7 +37,7 @@ export default function Navbar() {
       background: 'rgba(255,255,255,.95)',
       backdropFilter: 'blur(12px)',
       borderBottom: '1px solid #FFE4EF',
-      padding: '0 20px',
+      padding: '8px 20px',
     }}>
       <div style={{
         maxWidth: 1200,
@@ -45,31 +45,21 @@ export default function Navbar() {
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'space-between',
-        height: 64,
       }}>
-        <Link href="/" style={{
-          display: 'flex',
-          alignItems: 'center',
-          gap: 8,
-          fontFamily: 'var(--font-playfair), serif',
-          fontSize: 22,
-          fontWeight: 700,
-          color: '#DB2777',
-          textDecoration: 'none',
-        }}>
-          <img src="/logo.png" alt="" style={{ width: 36, height: 36, objectFit: 'contain' }} />
-          Cambodia Floral
+        <Link href="/" style={{ textDecoration: 'none' }}>
+          <img src="/logo.png" alt="Cambodia Floral" style={{ height: 144, objectFit: 'contain' }} />
         </Link>
 
         {/* Desktop nav */}
         <div className="nav-links">
           <Link href="/shop" style={navLinkStyle}>Shop</Link>
           <Link href="/about" style={navLinkStyle}>About</Link>
+          <Link href="/contact" style={navLinkStyle}>Contact</Link>
           <Link href="/track" style={navLinkStyle}>Track Order</Link>
 
           <Link href="/cart" style={{
             position: 'relative',
-            fontSize: 20,
+            fontSize: 27,
             textDecoration: 'none',
             color: '#4A3040',
           }}>
@@ -78,13 +68,13 @@ export default function Navbar() {
               <span style={{
                 position: 'absolute',
                 top: -8,
-                right: -10,
+                right: -12,
                 background: '#EC4899',
                 color: '#fff',
-                fontSize: 10,
+                fontSize: 12,
                 fontWeight: 800,
-                width: 18,
-                height: 18,
+                width: 20,
+                height: 20,
                 borderRadius: '50%',
                 display: 'flex',
                 alignItems: 'center',
@@ -103,8 +93,8 @@ export default function Navbar() {
                   background: '#FFF0F5',
                   border: '1px solid #FFD6E8',
                   borderRadius: 50,
-                  padding: '6px 16px',
-                  fontSize: 13,
+                  padding: '9px 22px',
+                  fontSize: 18,
                   fontWeight: 600,
                   color: '#DB2777',
                   cursor: 'pointer',
@@ -115,34 +105,34 @@ export default function Navbar() {
               {menuOpen && (
                 <div style={{
                   position: 'absolute',
-                  top: 44,
+                  top: 50,
                   right: 0,
                   background: '#fff',
                   border: '1px solid #FFE4EF',
                   borderRadius: 12,
                   boxShadow: '0 8px 24px rgba(0,0,0,.08)',
-                  minWidth: 160,
+                  minWidth: 180,
                   overflow: 'hidden',
                   zIndex: 60,
                 }}>
                   <Link href="/account" onClick={() => setMenuOpen(false)} style={{
-                    display: 'block', padding: '10px 16px', fontSize: 13, color: '#4A3040',
+                    display: 'block', padding: '12px 18px', fontSize: 15, color: '#4A3040',
                     textDecoration: 'none', borderBottom: '1px solid #FFF0F5',
                   }}>My Account</Link>
                   <Link href="/account/orders" onClick={() => setMenuOpen(false)} style={{
-                    display: 'block', padding: '10px 16px', fontSize: 13, color: '#4A3040',
+                    display: 'block', padding: '12px 18px', fontSize: 15, color: '#4A3040',
                     textDecoration: 'none', borderBottom: '1px solid #FFF0F5',
                   }}>My Orders</Link>
                   {customer?.is_admin && (
                     <Link href="/admin" onClick={() => setMenuOpen(false)} style={{
-                      display: 'block', padding: '10px 16px', fontSize: 13, color: '#DB2777',
+                      display: 'block', padding: '12px 18px', fontSize: 15, color: '#DB2777',
                       fontWeight: 600, textDecoration: 'none', borderBottom: '1px solid #FFF0F5',
                     }}>Admin Panel</Link>
                   )}
                   <button
                     onClick={async () => { setMenuOpen(false); await signOut(); window.location.href = '/' }}
                     style={{
-                      display: 'block', width: '100%', padding: '10px 16px', fontSize: 13,
+                      display: 'block', width: '100%', padding: '12px 18px', fontSize: 15,
                       color: '#EF4444', textAlign: 'left', background: 'none', border: 'none', cursor: 'pointer',
                     }}
                   >Sign Out</button>
@@ -151,14 +141,14 @@ export default function Navbar() {
             </div>
           ) : (
             <Link href="/login" style={{
-              background: '#EC4899', color: '#fff', padding: '8px 20px', borderRadius: 50,
-              fontSize: 13, fontWeight: 700, textDecoration: 'none',
+              background: '#EC4899', color: '#fff', padding: '11px 28px', borderRadius: 50,
+              fontSize: 18, fontWeight: 700, textDecoration: 'none',
             }}>Sign In</Link>
           )}
         </div>
 
         {/* Mobile hamburger + cart */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: 16 }} className="nav-hamburger">
+        <div className="nav-hamburger">
           <Link href="/cart" style={{ position: 'relative', fontSize: 20, textDecoration: 'none', color: '#4A3040' }}>
             🛒
             {count > 0 && (
@@ -182,6 +172,7 @@ export default function Navbar() {
       <div className={`nav-mobile-menu ${mobileOpen ? 'open' : ''}`}>
         <Link href="/shop" onClick={() => setMobileOpen(false)} style={navLinkStyle}>Shop</Link>
         <Link href="/about" onClick={() => setMobileOpen(false)} style={navLinkStyle}>About</Link>
+        <Link href="/contact" onClick={() => setMobileOpen(false)} style={navLinkStyle}>Contact</Link>
         <Link href="/track" onClick={() => setMobileOpen(false)} style={navLinkStyle}>Track Order</Link>
         {user ? (
           <>

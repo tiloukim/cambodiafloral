@@ -1,14 +1,42 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect, useRef, useCallback } from 'react'
 import Link from 'next/link'
+import Script from 'next/script'
 import Navbar from '@/components/Navbar'
 import Footer from '@/components/Footer'
+
+declare global {
+  interface Window {
+    turnstile?: {
+      render: (container: string | HTMLElement, options: Record<string, unknown>) => string
+      reset: (widgetId: string) => void
+    }
+  }
+}
 
 export default function ContactPage() {
   const [form, setForm] = useState({ name: '', email: '', subject: '', message: '' })
   const [sent, setSent] = useState(false)
   const [error, setError] = useState('')
+  const [captchaToken, setCaptchaToken] = useState('')
+  const captchaRef = useRef<HTMLDivElement>(null)
+  const widgetIdRef = useRef<string | null>(null)
+
+  const renderCaptcha = useCallback(() => {
+    if (window.turnstile && captchaRef.current && !widgetIdRef.current) {
+      widgetIdRef.current = window.turnstile.render(captchaRef.current, {
+        sitekey: '0x4AAAAAACq6o9kJIJPp0CIw',
+        callback: (token: string) => setCaptchaToken(token),
+        'expired-callback': () => setCaptchaToken(''),
+        theme: 'light',
+      })
+    }
+  }, [])
+
+  useEffect(() => {
+    renderCaptcha()
+  }, [renderCaptcha])
 
   const inputStyle: React.CSSProperties = {
     width: '100%',
@@ -37,7 +65,25 @@ export default function ContactPage() {
       setError('Please fill in all required fields.')
       return
     }
-    setSent(true)
+    if (!captchaToken) {
+      setError('Please complete the CAPTCHA verification.')
+      return
+    }
+    try {
+      const res = await fetch('/api/contact', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ ...form, captchaToken }),
+      })
+      if (!res.ok) {
+        const data = await res.json()
+        setError(data.error || 'Failed to send message.')
+        return
+      }
+      setSent(true)
+    } catch {
+      setError('Failed to send message. Please try again.')
+    }
   }
 
   return (
@@ -147,6 +193,10 @@ export default function ContactPage() {
                 />
               </div>
 
+              <div style={{ marginBottom: 20 }}>
+                <div ref={captchaRef} />
+              </div>
+
               {error && (
                 <p style={{ fontSize: 13, color: '#EF4444', marginBottom: 14 }}>{error}</p>
               )}
@@ -188,6 +238,10 @@ export default function ContactPage() {
       </section>
 
       <Footer />
+      <Script
+        src="https://challenges.cloudflare.com/turnstile/v0/api.js"
+        onLoad={renderCaptcha}
+      />
     </div>
   )
 }

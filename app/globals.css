@@ -74,12 +74,12 @@ body {
 }
 
 /* Navbar mobile */
-.nav-links { display: flex; align-items: center; gap: 24px; }
-.nav-hamburger { display: none; background: none; border: none; font-size: 24px; cursor: pointer; color: #4A3040; padding: 4px; }
+.nav-links { display: flex; align-items: center; gap: 32px; }
+.nav-hamburger { display: none; align-items: center; gap: 16px; }
 .nav-mobile-menu {
   display: none;
   position: absolute;
-  top: 64px;
+  top: 100%;
   left: 0;
   right: 0;
   background: #fff;
@@ -94,7 +94,7 @@ body {
 
 @media (max-width: 640px) {
   .nav-links { display: none; }
-  .nav-hamburger { display: block; }
+  .nav-hamburger { display: flex; }
   .footer-grid { text-align: center; }
   .footer-col { align-items: center; }
   .footer-col > div { align-items: center; }

@@ -57,7 +57,7 @@ export default function Navbar() {
           color: '#DB2777',
           textDecoration: 'none',
         }}>
-          <img src="/logo.svg" alt="" style={{ width: 32, height: 32 }} />
+          <img src="/logo.png" alt="" style={{ width: 36, height: 36, objectFit: 'contain' }} />
           Cambodia Floral
         </Link>
 

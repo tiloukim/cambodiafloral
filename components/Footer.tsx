@@ -16,17 +16,15 @@ export default function Footer() {
         marginBottom: 32,
       }}>
         <div className="footer-col">
-          <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 12 }}>
-            <img src="/logo.svg" alt="Cambodia Floral" style={{ width: 32, height: 32 }} />
-            <h3 style={{
-              fontFamily: 'var(--font-playfair), serif',
-              fontSize: 20,
-              fontWeight: 700,
-              color: '#F9A8D4',
-            }}>
-              Cambodia Floral
-            </h3>
-          </div>
+          <h3 style={{
+            fontFamily: 'var(--font-playfair), serif',
+            fontSize: 20,
+            fontWeight: 700,
+            color: '#F9A8D4',
+            marginBottom: 12,
+          }}>
+            Cambodia Floral
+          </h3>
           <p style={{ fontSize: 13, lineHeight: 1.6 }}>
             Delivering fresh, beautiful flowers across Cambodia. Bringing smiles from anywhere in the world to your loved ones.
           </p>

@@ -7,7 +7,7 @@ import Footer from '@/components/Footer'
 const SECTIONS = [
   {
     title: '1. Information We Collect',
-    content: 'We collect information you provide when placing an order, creating an account, or contacting us. This includes your name, email address, phone number, delivery addresses, and payment information processed through PayPal.',
+    content: 'We collect information you provide when placing an order, creating an account, or contacting us. This includes your name, email address, phone number, delivery addresses, and payment information processed through Stripe.',
   },
   {
     title: '2. How We Use Your Information',
@@ -15,7 +15,7 @@ const SECTIONS = [
   },
   {
     title: '3. Payment Security',
-    content: 'All payments are processed securely through PayPal. We do not store your credit card or PayPal account details on our servers. PayPal\'s security measures protect your financial information.',
+    content: 'All payments are processed securely through Stripe. We do not store your credit card details on our servers. Stripe\'s security measures protect your financial information.',
   },
   {
     title: '4. Cookies',
@@ -35,7 +35,7 @@ const SECTIONS = [
   },
   {
     title: '8. Third-Party Services',
-    content: 'We use Supabase for authentication and data storage, and PayPal for payment processing. These services have their own privacy policies governing how they handle your data.',
+    content: 'We use Supabase for authentication and data storage, and Stripe for payment processing. These services have their own privacy policies governing how they handle your data.',
   },
   {
     title: '9. Children\'s Privacy',

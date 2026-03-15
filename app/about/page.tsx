@@ -75,7 +75,7 @@ export default function AboutPage() {
               { title: 'Fresh & Local', desc: 'We source the freshest flowers from local Cambodian growers and markets.' },
               { title: 'Same-Day Delivery', desc: 'Order before noon for same-day delivery in Phnom Penh and major cities.' },
               { title: 'Hand-Crafted', desc: 'Every arrangement is crafted by skilled local florists with attention to detail.' },
-              { title: 'Secure Payments', desc: 'Pay safely with PayPal from anywhere in the world.' },
+              { title: 'Secure Payments', desc: 'Pay safely with Stripe from anywhere in the world.' },
             ].map(item => (
               <div key={item.title} style={{
                 display: 'flex',

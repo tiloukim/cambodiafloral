@@ -10,22 +10,27 @@ export async function GET(_req: Request, { params }: { params: Promise<{ id: str
   const admin = await isAdmin()
 
   if (admin) {
-    const { data, error } = await supabase
-      .from('cf_orders')
-      .select('*, cf_order_items(*)')
-      .eq('id', id)
-      .single()
+    let adminQuery = supabase.from('cf_orders').select('*, cf_order_items(*)')
+    if (id.length < 36) {
+      adminQuery = adminQuery.ilike('id', `${id}%`)
+    } else {
+      adminQuery = adminQuery.eq('id', id)
+    }
+    const { data, error } = await adminQuery.limit(1).single()
 
     if (error) return NextResponse.json({ error: error.message }, { status: 404 })
     return NextResponse.json({ ...data, items: data.cf_order_items })
   }
 
   // For users/guests, allow looking up by order id (for tracking)
-  const { data, error } = await supabase
-    .from('cf_orders')
-    .select('*, cf_order_items(*)')
-    .eq('id', id)
-    .single()
+  // Support both full UUID and short (first 8 chars) order IDs
+  let query = supabase.from('cf_orders').select('*, cf_order_items(*)')
+  if (id.length < 36) {
+    query = query.ilike('id', `${id}%`)
+  } else {
+    query = query.eq('id', id)
+  }
+  const { data, error } = await query.limit(1).single()
 
   if (error) return NextResponse.json({ error: 'Order not found' }, { status: 404 })
 

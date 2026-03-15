@@ -40,11 +40,21 @@ export async function POST(req: Request) {
         })
         .eq('id', orderId)
 
+      // Fetch order items for notification
+      const { data: orderItems } = await supabase
+        .from('cf_order_items')
+        .select('sku, title, quantity')
+        .eq('order_id', orderId)
+
+      const itemsList = (orderItems || [])
+        .map(i => `${i.sku ? `[${i.sku}] ` : ''}${i.title} x${i.quantity}`)
+        .join(', ')
+
       // Create notification for admin
       await supabase.from('cf_notifications').insert({
         type: 'new_order',
         title: 'New Paid Order',
-        message: `Order #${orderId.slice(0, 8)} paid - $${((session.amount_total || 0) / 100).toFixed(2)}`,
+        message: `Order #${orderId.slice(0, 8)} paid - $${((session.amount_total || 0) / 100).toFixed(2)}. Items: ${itemsList}`,
         order_id: orderId,
       })
     }

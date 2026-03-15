@@ -88,6 +88,7 @@ export default function AdminOrders() {
               <tr>
                 <th>Order</th>
                 <th>Customer</th>
+                <th>Items</th>
                 <th>Recipient</th>
                 <th>Total</th>
                 <th>Status</th>
@@ -105,6 +106,14 @@ export default function AdminOrders() {
                   <td>
                     <div style={{ fontWeight: 600 }}>{o.sender_name}</div>
                     <div className="admin-sub-text">{o.sender_email}</div>
+                  </td>
+                  <td>
+                    {o.items?.map((item, i) => (
+                      <div key={i} style={{ fontSize: 12, lineHeight: 1.6 }}>
+                        {item.sku && <span style={{ fontFamily: 'monospace', color: '#EC4899', fontWeight: 600 }}>[{item.sku}]</span>}{' '}
+                        {item.title} x{item.quantity}
+                      </div>
+                    ))}
                   </td>
                   <td>
                     <div style={{ fontWeight: 600 }}>{o.recipient_name}</div>

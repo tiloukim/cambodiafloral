@@ -105,9 +105,10 @@ export async function POST(req: Request) {
   if (orderErr) return NextResponse.json({ error: orderErr.message }, { status: 500 })
 
   // Create order items
-  const orderItems = body.items.map((item: { product_id: string; title: string; price: number; quantity: number; image_url: string }) => ({
+  const orderItems = body.items.map((item: { product_id: string; sku?: string; title: string; price: number; quantity: number; image_url: string }) => ({
     order_id: order.id,
     product_id: item.product_id,
+    sku: item.sku || null,
     title: item.title,
     price: item.price,
     quantity: item.quantity,

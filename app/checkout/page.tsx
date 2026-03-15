@@ -63,6 +63,7 @@ function CheckoutContent() {
           card_message: cardMessage || null,
           items: items.map(i => ({
             product_id: i.id,
+            sku: i.sku || null,
             title: i.title,
             price: i.price,
             quantity: i.qty,

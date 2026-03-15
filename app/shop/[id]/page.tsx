@@ -32,6 +32,7 @@ export default function ProductDetailPage() {
     if (!product) return
     addItem({
       id: product.id,
+      sku: product.sku || null,
       title: product.title,
       price: product.price,
       qty,

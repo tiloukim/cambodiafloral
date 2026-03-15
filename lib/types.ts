@@ -1,5 +1,6 @@
 export interface Product {
   id: string
+  sku: string | null
   title: string
   price: number
   compare_price: number | null
@@ -16,6 +17,7 @@ export interface Product {
 
 export interface CartItem {
   id: string
+  sku: string | null
   title: string
   price: number
   qty: number
@@ -64,6 +66,7 @@ export interface OrderItem {
   id: string
   order_id: string
   product_id: string | null
+  sku: string | null
   title: string
   price: number
   quantity: number

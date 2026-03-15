@@ -7,13 +7,14 @@ const CATEGORIES = ['bouquets', 'arrangements', 'baskets', 'wedding', 'sympathy'
 const OCCASIONS = ['Birthday', 'Anniversary', "Valentine's", 'Congratulations', 'Get Well', 'Sympathy']
 const BADGES = ['NEW', 'BEST', 'POPULAR', 'SALE', 'LIMITED']
 
-const EMPTY_FORM = { title: '', price: '', compare_price: '', category: 'bouquets', occasion: '', description: '', stock: '10', badge: '' }
+const EMPTY_FORM = { title: '', sku: '', price: '', compare_price: '', category: 'bouquets', occasion: '', description: '', stock: '10', badge: '' }
 
 export default function AdminProducts() {
   const [products, setProducts] = useState<Product[]>([])
   const [loading, setLoading] = useState(true)
   const [editing, setEditing] = useState<string | null>(null)
   const [editTitle, setEditTitle] = useState('')
+  const [editSku, setEditSku] = useState('')
   const [editStock, setEditStock] = useState('')
   const [editPrice, setEditPrice] = useState('')
   const [editCategory, setEditCategory] = useState('')
@@ -113,6 +114,7 @@ export default function AdminProducts() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           title: addForm.title,
+          sku: addForm.sku || null,
           price: parseFloat(addForm.price),
           compare_price: addForm.compare_price ? parseFloat(addForm.compare_price) : null,
           category: addForm.category,
@@ -157,9 +159,13 @@ export default function AdminProducts() {
         <div style={{ background: '#fff', border: '1px solid #FFE4EF', borderRadius: 14, padding: 24, marginBottom: 24 }}>
           <h3 style={{ fontSize: 16, fontWeight: 700, marginBottom: 18, color: '#4A3040' }}>New Product</h3>
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 14 }}>
-            <div style={{ gridColumn: '1 / -1' }}>
+            <div>
               <label style={labelStyle}>Title *</label>
               <input value={addForm.title} onChange={e => setAddForm({ ...addForm, title: e.target.value })} style={inputStyle} placeholder="Pink Rose Bouquet" />
+            </div>
+            <div>
+              <label style={labelStyle}>Product Code (SKU)</label>
+              <input value={addForm.sku} onChange={e => setAddForm({ ...addForm, sku: e.target.value })} style={inputStyle} placeholder="CF-001" />
             </div>
             <div>
               <label style={labelStyle}>Price *</label>
@@ -249,9 +255,15 @@ export default function AdminProducts() {
                       <img src={p.image_url} alt={p.title} style={{ width: 48, height: 48, objectFit: 'cover', borderRadius: 10 }} />
                       <div>
                         {editing === p.id ? (
-                          <input value={editTitle} onChange={e => setEditTitle(e.target.value)} style={{ width: '100%', padding: '4px 8px', border: '1px solid #FFD6E8', borderRadius: 6, fontSize: 13, fontWeight: 600 }} />
+                          <>
+                            <input value={editTitle} onChange={e => setEditTitle(e.target.value)} style={{ width: '100%', padding: '4px 8px', border: '1px solid #FFD6E8', borderRadius: 6, fontSize: 13, fontWeight: 600, marginBottom: 4 }} />
+                            <input value={editSku} onChange={e => setEditSku(e.target.value)} style={{ width: '100%', padding: '4px 8px', border: '1px solid #FFD6E8', borderRadius: 6, fontSize: 11, color: '#9C7A8E' }} placeholder="SKU e.g. CF-001" />
+                          </>
                         ) : (
-                          <div style={{ fontWeight: 600 }}>{p.title}</div>
+                          <>
+                            <div style={{ fontWeight: 600 }}>{p.title}</div>
+                            {p.sku && <div className="admin-sub-text" style={{ fontFamily: 'monospace', fontSize: 11 }}>{p.sku}</div>}
+                          </>
                         )}
                         {p.occasion && <div className="admin-sub-text">{p.occasion}</div>}
                       </div>
@@ -295,12 +307,12 @@ export default function AdminProducts() {
                   <td>
                     {editing === p.id ? (
                       <div style={{ display: 'flex', gap: 6 }}>
-                        <button onClick={() => updateProduct(p.id, { title: editTitle, price: parseFloat(editPrice), stock: parseInt(editStock), category: editCategory, image_urls: editImages, image_url: editImages[0] || p.image_url })} style={{ padding: '4px 10px', fontSize: 12, fontWeight: 600, background: '#10B981', color: '#fff', border: 'none', borderRadius: 6, cursor: 'pointer' }}>Save</button>
+                        <button onClick={() => updateProduct(p.id, { title: editTitle, sku: editSku || null, price: parseFloat(editPrice), stock: parseInt(editStock), category: editCategory, image_urls: editImages, image_url: editImages[0] || p.image_url })} style={{ padding: '4px 10px', fontSize: 12, fontWeight: 600, background: '#10B981', color: '#fff', border: 'none', borderRadius: 6, cursor: 'pointer' }}>Save</button>
                         <button onClick={() => setEditing(null)} style={{ padding: '4px 10px', fontSize: 12, fontWeight: 600, background: '#F3F4F6', color: '#666', border: 'none', borderRadius: 6, cursor: 'pointer' }}>Cancel</button>
                       </div>
                     ) : (
                       <div style={{ display: 'flex', gap: 6 }}>
-                        <button onClick={() => { setEditing(p.id); setEditTitle(p.title); setEditPrice(p.price.toString()); setEditStock(p.stock.toString()); setEditCategory(p.category); setEditImages(p.image_urls?.length > 0 ? [...p.image_urls] : [p.image_url]) }} style={{ padding: '4px 10px', fontSize: 12, fontWeight: 600, background: '#EC4899', color: '#fff', border: 'none', borderRadius: 6, cursor: 'pointer' }}>Edit</button>
+                        <button onClick={() => { setEditing(p.id); setEditTitle(p.title); setEditSku(p.sku || ''); setEditPrice(p.price.toString()); setEditStock(p.stock.toString()); setEditCategory(p.category); setEditImages(p.image_urls?.length > 0 ? [...p.image_urls] : [p.image_url]) }} style={{ padding: '4px 10px', fontSize: 12, fontWeight: 600, background: '#EC4899', color: '#fff', border: 'none', borderRadius: 6, cursor: 'pointer' }}>Edit</button>
                         <button onClick={() => deleteProduct(p.id)} style={{ padding: '4px 10px', fontSize: 12, fontWeight: 600, background: '#EF4444', color: '#fff', border: 'none', borderRadius: 6, cursor: 'pointer' }}>Remove</button>
                       </div>
                     )}

@@ -26,6 +26,7 @@ export async function POST(req: Request) {
     .from('cf_products')
     .insert({
       title: body.title,
+      sku: body.sku || null,
       price: body.price,
       compare_price: body.compare_price || null,
       category: body.category,

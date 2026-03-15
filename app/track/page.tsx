@@ -207,7 +207,7 @@ function TrackContent() {
                 <div style={{ fontSize: 13, color: '#7A5A6A', lineHeight: 1.8 }}>
                   <div>Placed: {new Date(order.created_at).toLocaleDateString()}</div>
                   <div>Total: <span style={{ color: '#DB2777', fontWeight: 700 }}>${order.total.toFixed(2)}</span></div>
-                  {order.delivery_date && <div>Delivery: {new Date(order.delivery_date).toLocaleDateString()}</div>}
+                  {order.delivery_date && <div>Delivery: {new Date(order.delivery_date).toLocaleDateString()}{order.delivery_time && ` (${order.delivery_time.startsWith('specific:') ? order.delivery_time.replace('specific:', '') : order.delivery_time})`}</div>}
                   {order.tracking_number && <div>Tracking: {order.tracking_number}</div>}
                 </div>
               </div>

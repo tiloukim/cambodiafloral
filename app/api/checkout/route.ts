@@ -97,6 +97,7 @@ export async function POST(req: Request) {
       recipient_address: body.recipient_address,
       recipient_city: body.recipient_city,
       delivery_date: body.delivery_date || null,
+      delivery_time: body.delivery_time || null,
       card_message: body.card_message || null,
     })
     .select()

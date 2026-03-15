@@ -34,6 +34,7 @@ function CheckoutContent() {
   const [recipientCity, setRecipientCity] = useState('Phnom Penh')
 
   const [deliveryDate, setDeliveryDate] = useState('')
+  const [deliveryTime, setDeliveryTime] = useState('')
   const [cardMessage, setCardMessage] = useState('')
 
   const searchParams = useSearchParams()
@@ -60,6 +61,7 @@ function CheckoutContent() {
           recipient_address: recipientAddress,
           recipient_city: recipientCity,
           delivery_date: deliveryDate || null,
+          delivery_time: deliveryTime || null,
           card_message: cardMessage || null,
           items: items.map(i => ({
             product_id: i.id,
@@ -195,6 +197,22 @@ function CheckoutContent() {
                     <label style={labelStyle}>Delivery Date</label>
                     <input type="date" value={deliveryDate} onChange={e => setDeliveryDate(e.target.value)} style={inputStyle} min={new Date().toISOString().split('T')[0]} />
                   </div>
+                  <div>
+                    <label style={labelStyle}>Preferred Time</label>
+                    <select value={deliveryTime.startsWith('specific') ? 'specific' : deliveryTime} onChange={e => setDeliveryTime(e.target.value)} style={inputStyle}>
+                      <option value="">Any time</option>
+                      <option value="morning">Morning (8AM - 12PM)</option>
+                      <option value="afternoon">Afternoon (12PM - 5PM)</option>
+                      <option value="evening">Evening (5PM - 8PM)</option>
+                      <option value="specific">Specific time...</option>
+                    </select>
+                  </div>
+                  {deliveryTime.startsWith('specific') && (
+                    <div>
+                      <label style={labelStyle}>Specify Time</label>
+                      <input type="time" value={deliveryTime.includes(':') ? deliveryTime.replace('specific:', '') : ''} onChange={e => setDeliveryTime(`specific:${e.target.value}`)} style={inputStyle} />
+                    </div>
+                  )}
                   <div style={{ gridColumn: '1 / -1' }}>
                     <label style={labelStyle}>Card Message</label>
                     <textarea

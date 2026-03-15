@@ -52,6 +52,7 @@ export interface Order {
   recipient_address: string
   recipient_city: string
   delivery_date: string | null
+  delivery_time: string | null
   delivery_notes: string | null
   card_message: string | null
   tracking_number: string | null

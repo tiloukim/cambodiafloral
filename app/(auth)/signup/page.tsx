@@ -1,8 +1,18 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect, useRef, useCallback } from 'react'
 import Link from 'next/link'
+import Script from 'next/script'
 import { useAuth } from '@/lib/auth-context'
+
+declare global {
+  interface Window {
+    turnstile?: {
+      render: (container: string | HTMLElement, options: Record<string, unknown>) => string
+      reset: (widgetId: string) => void
+    }
+  }
+}
 
 export default function SignupPage() {
   const { supabase } = useAuth()
@@ -12,10 +22,32 @@ export default function SignupPage() {
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
   const [success, setSuccess] = useState(false)
+  const [captchaToken, setCaptchaToken] = useState('')
+  const captchaRef = useRef<HTMLDivElement>(null)
+  const widgetIdRef = useRef<string | null>(null)
+
+  const renderCaptcha = useCallback(() => {
+    if (window.turnstile && captchaRef.current && !widgetIdRef.current) {
+      widgetIdRef.current = window.turnstile.render(captchaRef.current, {
+        sitekey: '0x4AAAAAACq7DsjA4vjgSMuc',
+        callback: (token: string) => setCaptchaToken(token),
+        'expired-callback': () => setCaptchaToken(''),
+        theme: 'light',
+      })
+    }
+  }, [])
+
+  useEffect(() => {
+    renderCaptcha()
+  }, [renderCaptcha])
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setError('')
+    if (!captchaToken) {
+      setError('Please complete the CAPTCHA verification.')
+      return
+    }
     setLoading(true)
 
     const { error: err } = await supabase.auth.signUp({
@@ -23,6 +55,7 @@ export default function SignupPage() {
       password,
       options: {
         data: { name },
+        captchaToken,
         emailRedirectTo: `${window.location.origin}/api/auth/callback`,
       },
     })
@@ -30,6 +63,10 @@ export default function SignupPage() {
     if (err) {
       setError(err.message)
       setLoading(false)
+      if (widgetIdRef.current && window.turnstile) {
+        window.turnstile.reset(widgetIdRef.current)
+        setCaptchaToken('')
+      }
     } else {
       setSuccess(true)
       setLoading(false)
@@ -101,6 +138,7 @@ export default function SignupPage() {
               <label style={{ display: 'block', fontSize: 12, fontWeight: 600, color: '#9C7A8E', marginBottom: 6, textTransform: 'uppercase', letterSpacing: '0.5px' }}>Password</label>
               <input type="password" value={password} onChange={e => setPassword(e.target.value)} required minLength={6} style={inputStyle} placeholder="At least 6 characters" />
             </div>
+            <div ref={captchaRef} />
             {error && <div style={{ color: '#DC2626', fontSize: 13, fontWeight: 600 }}>{error}</div>}
             <button type="submit" disabled={loading} style={{
               background: '#EC4899',
@@ -124,6 +162,10 @@ export default function SignupPage() {
           <Link href="/login" style={{ color: '#EC4899', fontWeight: 600, textDecoration: 'none' }}>Sign In</Link>
         </p>
       </div>
+      <Script
+        src="https://challenges.cloudflare.com/turnstile/v0/api.js"
+        onLoad={renderCaptcha}
+      />
     </div>
   )
 }

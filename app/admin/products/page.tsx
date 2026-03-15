@@ -3,7 +3,7 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react'
 import type { Product } from '@/lib/types'
 
-const CATEGORIES = ['bouquets', 'arrangements', 'baskets', 'wedding', 'sympathy', 'plants']
+const CATEGORIES = ['bouquets', 'arrangements', 'baskets', 'wedding', 'sympathy', 'plants', 'cakes']
 const OCCASIONS = ['Birthday', 'Anniversary', "Valentine's", 'Congratulations', 'Get Well', 'Sympathy']
 const BADGES = ['NEW', 'BEST', 'POPULAR', 'SALE', 'LIMITED']
 
@@ -15,6 +15,7 @@ export default function AdminProducts() {
   const [editing, setEditing] = useState<string | null>(null)
   const [editStock, setEditStock] = useState('')
   const [editPrice, setEditPrice] = useState('')
+  const [editCategory, setEditCategory] = useState('')
   const [editImages, setEditImages] = useState<string[]>([])
   const [editUploading, setEditUploading] = useState(false)
   const editFileRef = useRef<HTMLInputElement>(null)
@@ -261,7 +262,15 @@ export default function AdminProducts() {
                       </div>
                     )}
                   </td>
-                  <td style={{ textTransform: 'capitalize' }}>{p.category}</td>
+                  <td>
+                    {editing === p.id ? (
+                      <select value={editCategory} onChange={e => setEditCategory(e.target.value)} style={{ padding: '4px 8px', border: '1px solid #FFD6E8', borderRadius: 6, fontSize: 13, textTransform: 'capitalize' }}>
+                        {CATEGORIES.map(c => <option key={c} value={c}>{c.charAt(0).toUpperCase() + c.slice(1)}</option>)}
+                      </select>
+                    ) : (
+                      <span style={{ textTransform: 'capitalize' }}>{p.category}</span>
+                    )}
+                  </td>
                   <td>
                     {editing === p.id ? (
                       <input type="number" value={editStock} onChange={e => setEditStock(e.target.value)} style={{ width: 60, padding: '4px 8px', border: '1px solid #FFD6E8', borderRadius: 6, fontSize: 13 }} />
@@ -281,12 +290,12 @@ export default function AdminProducts() {
                   <td>
                     {editing === p.id ? (
                       <div style={{ display: 'flex', gap: 6 }}>
-                        <button onClick={() => updateProduct(p.id, { price: parseFloat(editPrice), stock: parseInt(editStock), image_urls: editImages, image_url: editImages[0] || p.image_url })} style={{ padding: '4px 10px', fontSize: 12, fontWeight: 600, background: '#10B981', color: '#fff', border: 'none', borderRadius: 6, cursor: 'pointer' }}>Save</button>
+                        <button onClick={() => updateProduct(p.id, { price: parseFloat(editPrice), stock: parseInt(editStock), category: editCategory, image_urls: editImages, image_url: editImages[0] || p.image_url })} style={{ padding: '4px 10px', fontSize: 12, fontWeight: 600, background: '#10B981', color: '#fff', border: 'none', borderRadius: 6, cursor: 'pointer' }}>Save</button>
                         <button onClick={() => setEditing(null)} style={{ padding: '4px 10px', fontSize: 12, fontWeight: 600, background: '#F3F4F6', color: '#666', border: 'none', borderRadius: 6, cursor: 'pointer' }}>Cancel</button>
                       </div>
                     ) : (
                       <div style={{ display: 'flex', gap: 6 }}>
-                        <button onClick={() => { setEditing(p.id); setEditPrice(p.price.toString()); setEditStock(p.stock.toString()); setEditImages(p.image_urls?.length > 0 ? [...p.image_urls] : [p.image_url]) }} style={{ padding: '4px 10px', fontSize: 12, fontWeight: 600, background: '#EC4899', color: '#fff', border: 'none', borderRadius: 6, cursor: 'pointer' }}>Edit</button>
+                        <button onClick={() => { setEditing(p.id); setEditPrice(p.price.toString()); setEditStock(p.stock.toString()); setEditCategory(p.category); setEditImages(p.image_urls?.length > 0 ? [...p.image_urls] : [p.image_url]) }} style={{ padding: '4px 10px', fontSize: 12, fontWeight: 600, background: '#EC4899', color: '#fff', border: 'none', borderRadius: 6, cursor: 'pointer' }}>Edit</button>
                         <button onClick={() => deleteProduct(p.id)} style={{ padding: '4px 10px', fontSize: 12, fontWeight: 600, background: '#EF4444', color: '#fff', border: 'none', borderRadius: 6, cursor: 'pointer' }}>Remove</button>
                       </div>
                     )}

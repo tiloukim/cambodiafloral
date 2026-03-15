@@ -7,7 +7,7 @@ import Footer from '@/components/Footer'
 import ProductCard from '@/components/ProductCard'
 import type { Product } from '@/lib/types'
 
-const CATEGORIES = ['All', 'Bouquets', 'Arrangements', 'Baskets', 'Wedding', 'Sympathy', 'Plants']
+const CATEGORIES = ['All', 'Bouquets', 'Arrangements', 'Baskets', 'Wedding', 'Sympathy', 'Plants', 'Cakes']
 
 function ShopContent() {
   const searchParams = useSearchParams()

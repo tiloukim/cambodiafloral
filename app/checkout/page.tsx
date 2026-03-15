@@ -1,7 +1,7 @@
 'use client'
 
-import { useState } from 'react'
-import { useRouter } from 'next/navigation'
+import { useState, Suspense } from 'react'
+import { useRouter, useSearchParams } from 'next/navigation'
 import Navbar from '@/components/Navbar'
 import Footer from '@/components/Footer'
 import { useAuth } from '@/lib/auth-context'
@@ -11,6 +11,14 @@ const DELIVERY_FEE = 5
 const CITIES = ['Phnom Penh', 'Siem Reap', 'Battambang', 'Sihanoukville']
 
 export default function CheckoutPage() {
+  return (
+    <Suspense>
+      <CheckoutContent />
+    </Suspense>
+  )
+}
+
+function CheckoutContent() {
   const router = useRouter()
   const { customer } = useAuth()
   const { items, total, clearCart } = useCart()
@@ -28,7 +36,8 @@ export default function CheckoutPage() {
   const [deliveryDate, setDeliveryDate] = useState('')
   const [cardMessage, setCardMessage] = useState('')
 
-  const [error, setError] = useState('')
+  const searchParams = useSearchParams()
+  const [error, setError] = useState(searchParams.get('cancelled') ? 'Payment was cancelled. You can try again.' : '')
   const [submitting, setSubmitting] = useState(false)
 
   const handlePlaceOrder = async (e: React.FormEvent) => {
@@ -38,7 +47,7 @@ export default function CheckoutPage() {
     setSubmitting(true)
 
     try {
-      const res = await fetch('/api/orders', {
+      const res = await fetch('/api/checkout', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -64,14 +73,13 @@ export default function CheckoutPage() {
 
       if (!res.ok) {
         const data = await res.json()
-        setError(data.error || 'Failed to place order')
+        setError(data.error || 'Failed to create checkout')
         setSubmitting(false)
         return
       }
 
-      const order = await res.json()
-      clearCart()
-      router.push(`/track?order=${order.id}`)
+      const { url } = await res.json()
+      window.location.href = url
     } catch {
       setError('Something went wrong. Please try again.')
       setSubmitting(false)
@@ -256,7 +264,7 @@ export default function CheckoutPage() {
                   opacity: submitting ? 0.7 : 1,
                 }}
               >
-                {submitting ? 'Placing Order...' : 'Place Order'}
+                {submitting ? 'Redirecting to payment...' : 'Pay with Stripe'}
               </button>
             </div>
           </div>

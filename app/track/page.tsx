@@ -26,8 +26,8 @@ function TrackContent() {
   }, [])
 
   async function handleTrack(id?: string) {
-    const trackId = id || orderId
-    if (!trackId.trim()) return
+    const trackId = (id || orderId).trim().replace(/^#/, '')
+    if (!trackId) return
     setError('')
     setLoading(true)
     setSearched(true)

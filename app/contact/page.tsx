@@ -226,10 +226,6 @@ export default function ContactPage() {
             gap: 12,
           }}>
             <div style={{ display: 'flex', gap: 10, alignItems: 'center' }}>
-              <span style={{ fontSize: 18 }}>📧</span>
-              <span style={{ fontSize: 14, color: '#7A5A6A' }}>support@cambodiafloral.com</span>
-            </div>
-            <div style={{ display: 'flex', gap: 10, alignItems: 'center' }}>
               <span style={{ fontSize: 18 }}>📍</span>
               <span style={{ fontSize: 14, color: '#7A5A6A' }}>Phnom Penh, Cambodia</span>
             </div>

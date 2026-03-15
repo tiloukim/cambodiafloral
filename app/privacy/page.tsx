@@ -47,7 +47,7 @@ const SECTIONS = [
   },
   {
     title: '11. Contact Us',
-    content: 'If you have questions about this privacy policy or your personal data, please contact us at support@cambodiafloral.com.',
+    content: 'If you have questions about this privacy policy or your personal data, please contact us through our contact form.',
   },
 ]
 

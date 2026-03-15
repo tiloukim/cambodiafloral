@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { notifyMessageAdmin } from '@/lib/notify'
 
 export async function POST(req: NextRequest) {
   try {
@@ -23,8 +24,14 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'CAPTCHA verification failed' }, { status: 403 })
     }
 
-    // TODO: Send email, save to DB, etc.
-    // For now, just return success
+    // Send notification to admin via email + Telegram
+    const subjectLine = subject ? `[${subject}] ` : ''
+    await notifyMessageAdmin({
+      customerName: name,
+      customerEmail: email,
+      message: `${subjectLine}${message}`,
+    })
+
     return NextResponse.json({ success: true })
   } catch {
     return NextResponse.json({ error: 'Something went wrong' }, { status: 500 })

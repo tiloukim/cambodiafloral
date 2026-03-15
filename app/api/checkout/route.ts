@@ -92,7 +92,6 @@ export async function POST(req: Request) {
       sender_name: body.sender_name,
       sender_email: body.sender_email,
       sender_phone: body.sender_phone || null,
-      sender_country: body.sender_country || null,
       recipient_name: body.recipient_name,
       recipient_phone: body.recipient_phone,
       recipient_address: body.recipient_address,

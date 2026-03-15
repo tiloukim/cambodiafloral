@@ -10,9 +10,10 @@ export default function Footer() {
       <div className="footer-grid" style={{
         maxWidth: 1000,
         margin: '0 auto',
-        display: 'grid',
-        gridTemplateColumns: 'repeat(auto-fit, minmax(min(180px, 100%), 1fr))',
-        gap: 32,
+        display: 'flex',
+        justifyContent: 'center',
+        gap: 64,
+        flexWrap: 'wrap',
         marginBottom: 32,
       }}>
 <div className="footer-col">

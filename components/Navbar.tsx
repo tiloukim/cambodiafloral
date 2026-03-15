@@ -23,10 +23,13 @@ export default function Navbar() {
   }, [])
 
   const navLinkStyle: React.CSSProperties = {
-    fontSize: 21,
-    fontWeight: 600,
-    color: '#4A3040',
+    fontSize: 18,
+    fontWeight: 700,
+    color: '#DC2626',
     textDecoration: 'none',
+    background: '#FEE2E2',
+    padding: '8px 20px',
+    borderRadius: 50,
   }
 
   return (

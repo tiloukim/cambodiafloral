@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server'
 import Stripe from 'stripe'
 import { createClient, createServiceClient } from '@/lib/supabase/server'
+import { notifyOrderAdmin } from '@/lib/notify'
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!)
 const DELIVERY_FEE = 5
@@ -121,6 +122,24 @@ export async function POST(req: Request) {
     .insert(orderItems)
 
   if (itemsErr) return NextResponse.json({ error: itemsErr.message }, { status: 500 })
+
+  // Send email + Telegram alert for new order
+  await notifyOrderAdmin({
+    orderId: order.id,
+    senderName: body.sender_name,
+    senderEmail: body.sender_email,
+    recipientName: body.recipient_name,
+    recipientCity: body.recipient_city,
+    total,
+    items: body.items.map((i: { sku?: string; title: string; quantity: number }) => ({
+      sku: i.sku,
+      title: i.title,
+      quantity: i.quantity,
+    })),
+    deliveryDate: body.delivery_date,
+    cardMessage: body.card_message,
+    type: 'new_order',
+  })
 
   // Create Stripe Checkout Session
   const origin = new URL(req.url).origin

@@ -1,6 +1,6 @@
 'use client'
 
-import { createContext, useContext, useState, useEffect, type ReactNode } from 'react'
+import { createContext, useContext, useState, useEffect, useCallback, type ReactNode } from 'react'
 import type { CartItem } from '@/lib/types'
 
 interface CartContextType {
@@ -44,7 +44,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
     setItems(prev => prev.map(i => i.id === id ? { ...i, qty } : i))
   }
 
-  const clearCart = () => setItems([])
+  const clearCart = useCallback(() => setItems([]), [])
 
   const total = items.reduce((sum, i) => sum + i.price * i.qty, 0)
   const count = items.reduce((sum, i) => sum + i.qty, 0)

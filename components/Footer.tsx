@@ -15,21 +15,7 @@ export default function Footer() {
         gap: 32,
         marginBottom: 32,
       }}>
-        <div className="footer-col">
-          <h3 style={{
-            fontFamily: 'var(--font-playfair), serif',
-            fontSize: 20,
-            fontWeight: 700,
-            color: '#F9A8D4',
-            marginBottom: 12,
-          }}>
-            Cambodia Floral
-          </h3>
-          <p style={{ fontSize: 13, lineHeight: 1.6 }}>
-            Delivering fresh, beautiful flowers across Cambodia. Bringing smiles from anywhere in the world to your loved ones.
-          </p>
-        </div>
-        <div className="footer-col">
+<div className="footer-col">
           <h4 style={{ fontSize: 13, fontWeight: 700, color: '#F9A8D4', marginBottom: 12, textTransform: 'uppercase', letterSpacing: '1px' }}>Shop</h4>
           <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
             <Link href="/shop" style={{ fontSize: 13, color: '#C9A0B4', textDecoration: 'none' }}>All Flowers</Link>

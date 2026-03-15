@@ -1,7 +1,11 @@
-const RESEND_API_KEY = process.env.RESEND_API_KEY
-const ADMIN_EMAIL = process.env.ADMIN_EMAIL
-const TELEGRAM_BOT_TOKEN = process.env.TELEGRAM_BOT_TOKEN
-const TELEGRAM_CHAT_ID = process.env.TELEGRAM_CHAT_ID
+function getEnv() {
+  return {
+    RESEND_API_KEY: process.env.RESEND_API_KEY,
+    ADMIN_EMAIL: process.env.ADMIN_EMAIL,
+    TELEGRAM_BOT_TOKEN: process.env.TELEGRAM_BOT_TOKEN,
+    TELEGRAM_CHAT_ID: process.env.TELEGRAM_CHAT_ID,
+  }
+}
 
 interface OrderNotification {
   orderId: string
@@ -66,10 +70,12 @@ function formatOrderHTML(data: OrderNotification): string {
 }
 
 async function sendEmail(subject: string, html: string) {
+  const { RESEND_API_KEY, ADMIN_EMAIL } = getEnv()
+  console.log('[notify] sendEmail called, has API key:', !!RESEND_API_KEY, 'has admin email:', !!ADMIN_EMAIL)
   if (!RESEND_API_KEY || !ADMIN_EMAIL) return
 
   try {
-    await fetch('https://api.resend.com/emails', {
+    const res = await fetch('https://api.resend.com/emails', {
       method: 'POST',
       headers: {
         'Authorization': `Bearer ${RESEND_API_KEY}`,
@@ -82,16 +88,20 @@ async function sendEmail(subject: string, html: string) {
         html,
       }),
     })
+    const result = await res.json()
+    console.log('[notify] Email response:', res.status, JSON.stringify(result))
   } catch (err) {
-    console.error('Email notification failed:', err)
+    console.error('[notify] Email notification failed:', err)
   }
 }
 
 async function sendTelegram(text: string) {
+  const { TELEGRAM_BOT_TOKEN, TELEGRAM_CHAT_ID } = getEnv()
+  console.log('[notify] sendTelegram called, has token:', !!TELEGRAM_BOT_TOKEN, 'has chat ID:', !!TELEGRAM_CHAT_ID)
   if (!TELEGRAM_BOT_TOKEN || !TELEGRAM_CHAT_ID) return
 
   try {
-    await fetch(`https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage`, {
+    const res = await fetch(`https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
@@ -100,8 +110,10 @@ async function sendTelegram(text: string) {
         parse_mode: 'HTML',
       }),
     })
+    const result = await res.json()
+    console.log('[notify] Telegram response:', res.status, JSON.stringify(result))
   } catch (err) {
-    console.error('Telegram notification failed:', err)
+    console.error('[notify] Telegram notification failed:', err)
   }
 }
 

@@ -83,7 +83,7 @@ async function sendEmail(subject: string, html: string) {
       },
       body: JSON.stringify({
         from: 'Cambodia Floral <noreply@cambodiafloral.com>',
-        to: [ADMIN_EMAIL],
+        to: [ADMIN_EMAIL, ...(process.env.ADMIN_EMAIL_2 ? [process.env.ADMIN_EMAIL_2] : [])],
         subject,
         html,
       }),

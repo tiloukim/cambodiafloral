@@ -18,6 +18,8 @@ export default function SignupPage() {
   const { supabase } = useAuth()
   const [name, setName] = useState('')
   const [email, setEmail] = useState('')
+  const [phone, setPhone] = useState('')
+  const [address, setAddress] = useState('')
   const [password, setPassword] = useState('')
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
@@ -54,7 +56,7 @@ export default function SignupPage() {
       email,
       password,
       options: {
-        data: { name },
+        data: { name, phone, address },
         captchaToken,
         emailRedirectTo: `${window.location.origin}/api/auth/callback`,
       },
@@ -133,6 +135,14 @@ export default function SignupPage() {
             <div>
               <label style={{ display: 'block', fontSize: 12, fontWeight: 600, color: '#9C7A8E', marginBottom: 6, textTransform: 'uppercase', letterSpacing: '0.5px' }}>Email</label>
               <input type="email" value={email} onChange={e => setEmail(e.target.value)} required style={inputStyle} placeholder="you@example.com" />
+            </div>
+            <div>
+              <label style={{ display: 'block', fontSize: 12, fontWeight: 600, color: '#9C7A8E', marginBottom: 6, textTransform: 'uppercase', letterSpacing: '0.5px' }}>Phone Number</label>
+              <input type="tel" value={phone} onChange={e => setPhone(e.target.value)} style={inputStyle} placeholder="+855 12 345 678" />
+            </div>
+            <div>
+              <label style={{ display: 'block', fontSize: 12, fontWeight: 600, color: '#9C7A8E', marginBottom: 6, textTransform: 'uppercase', letterSpacing: '0.5px' }}>Full Address</label>
+              <input type="text" value={address} onChange={e => setAddress(e.target.value)} style={inputStyle} placeholder="Street, City, Province" />
             </div>
             <div>
               <label style={{ display: 'block', fontSize: 12, fontWeight: 600, color: '#9C7A8E', marginBottom: 6, textTransform: 'uppercase', letterSpacing: '0.5px' }}>Password</label>

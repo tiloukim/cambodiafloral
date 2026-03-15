@@ -95,6 +95,7 @@ body {
 @media (max-width: 640px) {
   .nav-links { display: none; }
   .nav-hamburger { display: flex; }
+  .nav-logo { position: absolute; left: 50%; transform: translateX(-50%); }
   .footer-grid { text-align: center; }
   .footer-col { align-items: center; }
   .footer-col > div { align-items: center; }

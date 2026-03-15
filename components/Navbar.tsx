@@ -48,8 +48,9 @@ export default function Navbar() {
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'space-between',
+        position: 'relative',
       }}>
-        <Link href="/" style={{ textDecoration: 'none' }}>
+        <Link href="/" className="nav-logo" style={{ textDecoration: 'none' }}>
           <img src="/logo.png" alt="Cambodia Floral" style={{ height: 144, objectFit: 'contain' }} />
         </Link>
 

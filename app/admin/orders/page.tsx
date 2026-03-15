@@ -13,6 +13,7 @@ export default function AdminOrders() {
   const [statusFilter, setStatusFilter] = useState('all')
   const [updatingId, setUpdatingId] = useState<string | null>(null)
   const [trackingInputs, setTrackingInputs] = useState<Record<string, string>>({})
+  const [deletingId, setDeletingId] = useState<string | null>(null)
 
   const fetchOrders = useCallback(async () => {
     try {
@@ -50,6 +51,18 @@ export default function AdminOrders() {
       setTrackingInputs(prev => ({ ...prev, [id]: '' }))
       fetchOrders()
     } catch { /* ignore */ }
+  }
+
+  const deleteOrder = async (id: string) => {
+    if (!confirm(`Delete order #${id.slice(0, 8)}? This cannot be undone.`)) return
+    setDeletingId(id)
+    try {
+      const res = await fetch(`/api/orders/${id}`, { method: 'DELETE' })
+      if (res.ok) {
+        setOrders(prev => prev.filter(o => o.id !== id))
+      }
+    } catch { /* ignore */ }
+    setDeletingId(null)
   }
 
   if (loading) return <div className="admin-loading">Loading orders...</div>
@@ -144,25 +157,45 @@ export default function AdminOrders() {
                   </td>
                   <td className="admin-sub-text">{new Date(o.created_at).toLocaleDateString()}</td>
                   <td>
-                    <select
-                      value={o.status}
-                      onChange={e => updateStatus(o.id, e.target.value)}
-                      disabled={updatingId === o.id}
-                      style={{
-                        padding: '4px 8px',
-                        fontSize: 11,
-                        fontWeight: 600,
-                        border: '1px solid #FFD6E8',
-                        borderRadius: 6,
-                        cursor: 'pointer',
-                        background: '#FFF0F5',
-                        color: '#4A3040',
-                      }}
-                    >
-                      {STATUSES.filter(s => s !== 'all').map(s => (
-                        <option key={s} value={s}>{s.replace(/_/g, ' ')}</option>
-                      ))}
-                    </select>
+                    <div style={{ display: 'flex', gap: 4, alignItems: 'center' }}>
+                      <select
+                        value={o.status}
+                        onChange={e => updateStatus(o.id, e.target.value)}
+                        disabled={updatingId === o.id}
+                        style={{
+                          padding: '4px 8px',
+                          fontSize: 11,
+                          fontWeight: 600,
+                          border: '1px solid #FFD6E8',
+                          borderRadius: 6,
+                          cursor: 'pointer',
+                          background: '#FFF0F5',
+                          color: '#4A3040',
+                        }}
+                      >
+                        {STATUSES.filter(s => s !== 'all').map(s => (
+                          <option key={s} value={s}>{s.replace(/_/g, ' ')}</option>
+                        ))}
+                      </select>
+                      <button
+                        onClick={() => deleteOrder(o.id)}
+                        disabled={deletingId === o.id}
+                        title="Delete order"
+                        style={{
+                          padding: '4px 7px',
+                          fontSize: 12,
+                          fontWeight: 700,
+                          background: deletingId === o.id ? '#ccc' : '#FEE2E2',
+                          color: '#DC2626',
+                          border: '1px solid #FECACA',
+                          borderRadius: 6,
+                          cursor: deletingId === o.id ? 'not-allowed' : 'pointer',
+                          lineHeight: 1,
+                        }}
+                      >
+                        ✕
+                      </button>
+                    </div>
                   </td>
                 </tr>
               ))}

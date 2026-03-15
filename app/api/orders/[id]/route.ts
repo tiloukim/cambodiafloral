@@ -90,3 +90,25 @@ export async function PATCH(req: Request, { params }: { params: Promise<{ id: st
 
   return NextResponse.json(data)
 }
+
+export async function DELETE(_req: Request, { params }: { params: Promise<{ id: string }> }) {
+  if (!await isAdmin()) {
+    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+  }
+
+  const { id } = await params
+  const supabase = createServiceClient()
+
+  // Delete order items first (foreign key constraint)
+  await supabase.from('cf_order_items').delete().eq('order_id', id)
+
+  // Delete notifications related to this order
+  await supabase.from('cf_notifications').delete().eq('order_id', id)
+
+  // Delete the order
+  const { error } = await supabase.from('cf_orders').delete().eq('id', id)
+
+  if (error) return NextResponse.json({ error: error.message }, { status: 500 })
+
+  return NextResponse.json({ success: true })
+}

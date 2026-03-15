@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient, createServiceClient } from '@/lib/supabase/server'
 import { isAdmin } from '@/lib/admin'
+import { notifyMessageAdmin } from '@/lib/notify'
 
 // GET messages - admin sees all conversations, customer sees their own
 export async function GET(req: NextRequest) {
@@ -105,6 +106,22 @@ export async function POST(req: NextRequest) {
     .single()
 
   if (error) return NextResponse.json({ error: error.message }, { status: 500 })
+
+  // Notify admin via email + Telegram
+  const { data: custInfo } = await svc
+    .from('cf_customers')
+    .select('name, email')
+    .eq('id', cust.id)
+    .single()
+
+  if (custInfo) {
+    await notifyMessageAdmin({
+      customerName: custInfo.name || 'Customer',
+      customerEmail: custInfo.email,
+      message: content.trim(),
+    })
+  }
+
   return NextResponse.json(data)
 }
 

@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server'
 import { createClient, createServiceClient } from '@/lib/supabase/server'
 import { isAdmin } from '@/lib/admin'
+import { notifyOrderAdmin } from '@/lib/notify'
 
 const DELIVERY_FEE = 5
 
@@ -185,6 +186,24 @@ export async function POST(req: Request) {
     title: 'New Order',
     message: `New order #${order.id.slice(0, 8)} from ${body.sender_name} - $${total.toFixed(2)}`,
     order_id: order.id,
+  })
+
+  // Send email + Telegram alert
+  await notifyOrderAdmin({
+    orderId: order.id,
+    senderName: body.sender_name,
+    senderEmail: body.sender_email,
+    recipientName: body.recipient_name,
+    recipientCity: body.recipient_city,
+    total,
+    items: body.items.map((i: { sku?: string; title: string; quantity: number }) => ({
+      sku: i.sku,
+      title: i.title,
+      quantity: i.quantity,
+    })),
+    deliveryDate: body.delivery_date,
+    cardMessage: body.card_message,
+    type: 'new_order',
   })
 
   return NextResponse.json(order, { status: 201 })

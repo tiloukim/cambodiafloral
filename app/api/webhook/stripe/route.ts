@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server'
 import Stripe from 'stripe'
 import { createServiceClient } from '@/lib/supabase/server'
+import { notifyOrderAdmin } from '@/lib/notify'
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!)
 
@@ -57,6 +58,28 @@ export async function POST(req: Request) {
         message: `Order #${orderId.slice(0, 8)} paid - $${((session.amount_total || 0) / 100).toFixed(2)}. Items: ${itemsList}`,
         order_id: orderId,
       })
+
+      // Send email + Telegram alert
+      const { data: order } = await supabase
+        .from('cf_orders')
+        .select('*')
+        .eq('id', orderId)
+        .single()
+
+      if (order) {
+        await notifyOrderAdmin({
+          orderId,
+          senderName: order.sender_name,
+          senderEmail: order.sender_email,
+          recipientName: order.recipient_name,
+          recipientCity: order.recipient_city,
+          total: order.total,
+          items: (orderItems || []).map(i => ({ sku: i.sku, title: i.title, quantity: i.quantity })),
+          deliveryDate: order.delivery_date,
+          cardMessage: order.card_message,
+          type: 'payment_confirmed',
+        })
+      }
     }
   }
 

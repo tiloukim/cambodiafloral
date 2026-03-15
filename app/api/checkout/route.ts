@@ -128,7 +128,10 @@ export async function POST(req: Request) {
     orderId: order.id,
     senderName: body.sender_name,
     senderEmail: body.sender_email,
+    senderPhone: body.sender_phone,
     recipientName: body.recipient_name,
+    recipientPhone: body.recipient_phone,
+    recipientAddress: body.recipient_address,
     recipientCity: body.recipient_city,
     total,
     items: body.items.map((i: { sku?: string; title: string; quantity: number }) => ({
@@ -137,6 +140,8 @@ export async function POST(req: Request) {
       quantity: i.quantity,
     })),
     deliveryDate: body.delivery_date,
+    deliveryTime: body.delivery_time,
+    deliveryNotes: body.delivery_notes,
     cardMessage: body.card_message,
     type: 'new_order',
   })

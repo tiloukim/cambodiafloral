@@ -11,11 +11,16 @@ interface OrderNotification {
   orderId: string
   senderName: string
   senderEmail: string
+  senderPhone?: string
   recipientName: string
+  recipientPhone?: string
+  recipientAddress?: string
   recipientCity: string
   total: number
   items: { sku?: string; title: string; quantity: number }[]
   deliveryDate?: string
+  deliveryTime?: string
+  deliveryNotes?: string
   cardMessage?: string
   type: 'new_order' | 'payment_confirmed'
 }
@@ -37,13 +42,21 @@ function formatOrderText(data: OrderNotification): string {
     `${label} - #${data.orderId.slice(0, 8)}`,
     '',
     `From: ${data.senderName} (${data.senderEmail})`,
-    `To: ${data.recipientName}, ${data.recipientCity}`,
+    data.senderPhone ? `Phone: ${data.senderPhone}` : '',
+    '',
+    'Deliver To:',
+    `Name: ${data.recipientName}`,
+    data.recipientAddress ? `Address: ${data.recipientAddress}, ${data.recipientCity}` : `City: ${data.recipientCity}`,
+    data.recipientPhone ? `Phone: ${data.recipientPhone}` : '',
+    data.deliveryDate ? `Date: ${data.deliveryDate}` : '',
+    data.deliveryTime ? `Time: ${data.deliveryTime}` : '',
+    data.deliveryNotes ? `Note: ${data.deliveryNotes}` : '',
+    '',
     `Total: $${data.total.toFixed(2)}`,
     '',
     'Items:',
     itemsList,
-    data.deliveryDate ? `\nDelivery: ${data.deliveryDate}` : '',
-    data.cardMessage ? `Card: "${data.cardMessage}"` : '',
+    data.cardMessage ? `\nCard Message: "${data.cardMessage}"` : '',
   ].filter(Boolean).join('\n')
 }
 
@@ -56,14 +69,27 @@ function formatOrderHTML(data: OrderNotification): string {
   return `
     <div style="font-family:sans-serif;max-width:500px;margin:0 auto;padding:20px;">
       <h2 style="color:#EC4899;margin:0 0 16px;">${label} - #${data.orderId.slice(0, 8)}</h2>
+      <h3 style="margin:16px 0 8px;font-size:14px;color:#888;">Sender</h3>
       <table style="width:100%;border-collapse:collapse;font-size:14px;">
-        <tr><td style="padding:6px 0;color:#888;">From</td><td style="padding:6px 0;font-weight:600;">${data.senderName} (${data.senderEmail})</td></tr>
-        <tr><td style="padding:6px 0;color:#888;">To</td><td style="padding:6px 0;font-weight:600;">${data.recipientName}, ${data.recipientCity}</td></tr>
-        <tr><td style="padding:6px 0;color:#888;">Total</td><td style="padding:6px 0;font-weight:700;color:#10B981;">$${data.total.toFixed(2)}</td></tr>
-        ${data.deliveryDate ? `<tr><td style="padding:6px 0;color:#888;">Delivery</td><td style="padding:6px 0;">${data.deliveryDate}</td></tr>` : ''}
-        ${data.cardMessage ? `<tr><td style="padding:6px 0;color:#888;">Card</td><td style="padding:6px 0;font-style:italic;">"${data.cardMessage}"</td></tr>` : ''}
+        <tr><td style="padding:6px 0;color:#888;width:100px;">Name</td><td style="padding:6px 0;font-weight:600;">${data.senderName}</td></tr>
+        <tr><td style="padding:6px 0;color:#888;">Email</td><td style="padding:6px 0;">${data.senderEmail}</td></tr>
+        ${data.senderPhone ? `<tr><td style="padding:6px 0;color:#888;">Phone</td><td style="padding:6px 0;">${data.senderPhone}</td></tr>` : ''}
       </table>
-      <h3 style="margin:16px 0 8px;font-size:14px;">Items</h3>
+      <h3 style="margin:16px 0 8px;font-size:14px;color:#888;">Deliver To</h3>
+      <table style="width:100%;border-collapse:collapse;font-size:14px;">
+        <tr><td style="padding:6px 0;color:#888;width:100px;">Name</td><td style="padding:6px 0;font-weight:600;">${data.recipientName}</td></tr>
+        ${data.recipientPhone ? `<tr><td style="padding:6px 0;color:#888;">Phone</td><td style="padding:6px 0;">${data.recipientPhone}</td></tr>` : ''}
+        ${data.recipientAddress ? `<tr><td style="padding:6px 0;color:#888;">Address</td><td style="padding:6px 0;">${data.recipientAddress}, ${data.recipientCity}</td></tr>` : `<tr><td style="padding:6px 0;color:#888;">City</td><td style="padding:6px 0;">${data.recipientCity}</td></tr>`}
+        ${data.deliveryDate ? `<tr><td style="padding:6px 0;color:#888;">Date</td><td style="padding:6px 0;">${data.deliveryDate}</td></tr>` : ''}
+        ${data.deliveryTime ? `<tr><td style="padding:6px 0;color:#888;">Time</td><td style="padding:6px 0;">${data.deliveryTime}</td></tr>` : ''}
+        ${data.deliveryNotes ? `<tr><td style="padding:6px 0;color:#888;">Note</td><td style="padding:6px 0;">${data.deliveryNotes}</td></tr>` : ''}
+      </table>
+      <h3 style="margin:16px 0 8px;font-size:14px;color:#888;">Order</h3>
+      <table style="width:100%;border-collapse:collapse;font-size:14px;">
+        <tr><td style="padding:6px 0;color:#888;width:100px;">Total</td><td style="padding:6px 0;font-weight:700;color:#10B981;">$${data.total.toFixed(2)}</td></tr>
+        ${data.cardMessage ? `<tr><td style="padding:6px 0;color:#888;">Card Message</td><td style="padding:6px 0;font-style:italic;">"${data.cardMessage}"</td></tr>` : ''}
+      </table>
+      <h3 style="margin:16px 0 8px;font-size:14px;color:#888;">Items</h3>
       <ul style="margin:0;padding-left:20px;font-size:14px;">${itemsHTML}</ul>
     </div>
   `

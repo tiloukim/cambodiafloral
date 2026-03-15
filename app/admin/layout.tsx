@@ -10,9 +10,21 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   const { user, customer, loading, signOut } = useAuth()
   const [notifications, setNotifications] = useState<Notification[]>([])
   const [notifOpen, setNotifOpen] = useState(false)
+  const [unreadMessages, setUnreadMessages] = useState(0)
   const pathname = usePathname()
 
   const isAdmin = !!customer?.is_admin
+
+  const fetchUnreadMessages = useCallback(async () => {
+    try {
+      const res = await fetch('/api/messages')
+      if (res.ok) {
+        const convos = await res.json()
+        const total = convos.reduce((sum: number, c: { unread: number }) => sum + c.unread, 0)
+        setUnreadMessages(total)
+      }
+    } catch { /* ignore */ }
+  }, [])
 
   const fetchNotifs = useCallback(async () => {
     try {
@@ -24,9 +36,13 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   useEffect(() => {
     if (!isAdmin) return
     fetchNotifs()
-    const interval = setInterval(fetchNotifs, 30000)
+    fetchUnreadMessages()
+    const interval = setInterval(() => {
+      fetchNotifs()
+      fetchUnreadMessages()
+    }, 15000)
     return () => clearInterval(interval)
-  }, [isAdmin, fetchNotifs])
+  }, [isAdmin, fetchNotifs, fetchUnreadMessages])
 
   const markRead = async () => {
     if (notifications.length === 0) return
@@ -71,6 +87,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
     { href: '/admin/orders', label: 'Orders', icon: '&#128230;' },
     { href: '/admin/products', label: 'Products', icon: '&#127804;' },
     { href: '/admin/customers', label: 'Customers', icon: '&#128101;' },
+    { href: '/admin/messages', label: 'Messages', icon: '&#128172;' },
   ]
 
   return (
@@ -89,6 +106,24 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
             >
               <span dangerouslySetInnerHTML={{ __html: item.icon }} />
               {item.label}
+              {item.href === '/admin/messages' && unreadMessages > 0 && (
+                <span style={{
+                  background: '#EC4899',
+                  color: '#fff',
+                  fontSize: 10,
+                  fontWeight: 800,
+                  minWidth: 18,
+                  height: 18,
+                  borderRadius: 50,
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  marginLeft: 'auto',
+                  padding: '0 5px',
+                }}>
+                  {unreadMessages}
+                </span>
+              )}
             </Link>
           ))}
         </nav>
@@ -104,7 +139,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
       <main className="admin-main">
         <header className="admin-header">
           <h2 className="admin-page-title">
-            {pathname === '/admin' ? 'Dashboard' : pathname === '/admin/orders' ? 'Orders' : pathname === '/admin/products' ? 'Products' : pathname === '/admin/customers' ? 'Customers' : pathname.startsWith('/admin/orders/') ? 'Order Detail' : 'Admin'}
+            {pathname === '/admin' ? 'Dashboard' : pathname === '/admin/orders' ? 'Orders' : pathname === '/admin/products' ? 'Products' : pathname === '/admin/customers' ? 'Customers' : pathname === '/admin/messages' ? 'Messages' : pathname.startsWith('/admin/orders/') ? 'Order Detail' : 'Admin'}
           </h2>
           <div className="admin-header-actions">
             <div style={{ position: 'relative' }}>

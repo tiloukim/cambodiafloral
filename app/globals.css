@@ -96,6 +96,7 @@ body {
   .nav-links { display: none; }
   .nav-hamburger { display: flex; }
   .nav-logo { position: absolute; left: 50%; transform: translateX(-50%); }
+  .nav-logo img { height: 80px !important; }
   .footer-grid { text-align: center; }
   .footer-col { align-items: center; }
   .footer-col > div { align-items: center; }

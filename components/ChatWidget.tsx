@@ -21,7 +21,7 @@ export default function ChatWidget() {
   const [unread, setUnread] = useState(0)
   const bottomRef = useRef<HTMLDivElement>(null)
 
-  const shouldShow = !!user && !!customer && !customer.is_admin
+  const shouldShow = !!user && (!customer || !customer.is_admin)
 
   const fetchMessages = useCallback(async () => {
     if (!shouldShow) return

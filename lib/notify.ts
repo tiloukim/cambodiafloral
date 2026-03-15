@@ -76,7 +76,7 @@ async function sendEmail(subject: string, html: string) {
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        from: 'Cambodia Floral <notifications@cambodiafloral.com>',
+        from: 'Cambodia Floral <noreply@cambodiafloral.com>',
         to: [ADMIN_EMAIL],
         subject,
         html,

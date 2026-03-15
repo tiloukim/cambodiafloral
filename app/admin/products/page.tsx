@@ -13,6 +13,7 @@ export default function AdminProducts() {
   const [products, setProducts] = useState<Product[]>([])
   const [loading, setLoading] = useState(true)
   const [editing, setEditing] = useState<string | null>(null)
+  const [editTitle, setEditTitle] = useState('')
   const [editStock, setEditStock] = useState('')
   const [editPrice, setEditPrice] = useState('')
   const [editCategory, setEditCategory] = useState('')
@@ -247,7 +248,11 @@ export default function AdminProducts() {
                       {/* eslint-disable-next-line @next/next/no-img-element */}
                       <img src={p.image_url} alt={p.title} style={{ width: 48, height: 48, objectFit: 'cover', borderRadius: 10 }} />
                       <div>
-                        <div style={{ fontWeight: 600 }}>{p.title}</div>
+                        {editing === p.id ? (
+                          <input value={editTitle} onChange={e => setEditTitle(e.target.value)} style={{ width: '100%', padding: '4px 8px', border: '1px solid #FFD6E8', borderRadius: 6, fontSize: 13, fontWeight: 600 }} />
+                        ) : (
+                          <div style={{ fontWeight: 600 }}>{p.title}</div>
+                        )}
                         {p.occasion && <div className="admin-sub-text">{p.occasion}</div>}
                       </div>
                     </div>
@@ -290,12 +295,12 @@ export default function AdminProducts() {
                   <td>
                     {editing === p.id ? (
                       <div style={{ display: 'flex', gap: 6 }}>
-                        <button onClick={() => updateProduct(p.id, { price: parseFloat(editPrice), stock: parseInt(editStock), category: editCategory, image_urls: editImages, image_url: editImages[0] || p.image_url })} style={{ padding: '4px 10px', fontSize: 12, fontWeight: 600, background: '#10B981', color: '#fff', border: 'none', borderRadius: 6, cursor: 'pointer' }}>Save</button>
+                        <button onClick={() => updateProduct(p.id, { title: editTitle, price: parseFloat(editPrice), stock: parseInt(editStock), category: editCategory, image_urls: editImages, image_url: editImages[0] || p.image_url })} style={{ padding: '4px 10px', fontSize: 12, fontWeight: 600, background: '#10B981', color: '#fff', border: 'none', borderRadius: 6, cursor: 'pointer' }}>Save</button>
                         <button onClick={() => setEditing(null)} style={{ padding: '4px 10px', fontSize: 12, fontWeight: 600, background: '#F3F4F6', color: '#666', border: 'none', borderRadius: 6, cursor: 'pointer' }}>Cancel</button>
                       </div>
                     ) : (
                       <div style={{ display: 'flex', gap: 6 }}>
-                        <button onClick={() => { setEditing(p.id); setEditPrice(p.price.toString()); setEditStock(p.stock.toString()); setEditCategory(p.category); setEditImages(p.image_urls?.length > 0 ? [...p.image_urls] : [p.image_url]) }} style={{ padding: '4px 10px', fontSize: 12, fontWeight: 600, background: '#EC4899', color: '#fff', border: 'none', borderRadius: 6, cursor: 'pointer' }}>Edit</button>
+                        <button onClick={() => { setEditing(p.id); setEditTitle(p.title); setEditPrice(p.price.toString()); setEditStock(p.stock.toString()); setEditCategory(p.category); setEditImages(p.image_urls?.length > 0 ? [...p.image_urls] : [p.image_url]) }} style={{ padding: '4px 10px', fontSize: 12, fontWeight: 600, background: '#EC4899', color: '#fff', border: 'none', borderRadius: 6, cursor: 'pointer' }}>Edit</button>
                         <button onClick={() => deleteProduct(p.id)} style={{ padding: '4px 10px', fontSize: 12, fontWeight: 600, background: '#EF4444', color: '#fff', border: 'none', borderRadius: 6, cursor: 'pointer' }}>Remove</button>
                       </div>
                     )}

@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useEffect, useCallback } from 'react'
+import Link from 'next/link'
 import OrderStatusBadge from '@/components/OrderStatusBadge'
 import type { Order } from '@/lib/types'
 
@@ -99,7 +100,7 @@ export default function AdminOrders() {
               {orders.map(o => (
                 <tr key={o.id}>
                   <td>
-                    <span style={{ fontWeight: 600, fontSize: 13 }}>#{o.id.slice(0, 8)}</span>
+                    <Link href={`/track?order=${o.id}`} target="_blank" style={{ fontWeight: 600, fontSize: 13, color: '#EC4899', textDecoration: 'none' }}>#{o.id.slice(0, 8)}</Link>
                   </td>
                   <td>
                     <div style={{ fontWeight: 600 }}>{o.sender_name}</div>

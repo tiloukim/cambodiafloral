@@ -11,6 +11,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   const [notifications, setNotifications] = useState<Notification[]>([])
   const [notifOpen, setNotifOpen] = useState(false)
   const [unreadMessages, setUnreadMessages] = useState(0)
+  const [sidebarOpen, setSidebarOpen] = useState(false)
   const pathname = usePathname()
 
   const isAdmin = !!customer?.is_admin
@@ -92,7 +93,8 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
 
   return (
     <div className="admin-layout">
-      <aside className="admin-sidebar">
+      <div className={`admin-sidebar-overlay ${sidebarOpen ? 'open' : ''}`} onClick={() => setSidebarOpen(false)} />
+      <aside className={`admin-sidebar ${sidebarOpen ? 'open' : ''}`}>
         <div className="admin-sidebar-logo">
           <h2>Cambodia Floral</h2>
           <div className="admin-badge">ADMIN</div>
@@ -103,6 +105,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
               key={item.href}
               href={item.href}
               className={`admin-nav-item ${pathname === item.href ? 'active' : ''}`}
+              onClick={() => setSidebarOpen(false)}
             >
               <span dangerouslySetInnerHTML={{ __html: item.icon }} />
               {item.label}
@@ -128,7 +131,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
           ))}
         </nav>
         <div className="admin-sidebar-footer">
-          <Link href="/" className="admin-nav-item">
+          <Link href="/" className="admin-nav-item" onClick={() => setSidebarOpen(false)}>
             <span>&#127968;</span> Back to Store
           </Link>
           <button onClick={async () => { await signOut(); window.location.href = '/login' }} className="admin-logout-btn">
@@ -138,6 +141,9 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
       </aside>
       <main className="admin-main">
         <header className="admin-header">
+          <button className="admin-mobile-toggle" onClick={() => setSidebarOpen(!sidebarOpen)}>
+            &#9776;
+          </button>
           <h2 className="admin-page-title">
             {pathname === '/admin' ? 'Dashboard' : pathname === '/admin/orders' ? 'Orders' : pathname === '/admin/products' ? 'Products' : pathname === '/admin/customers' ? 'Customers' : pathname === '/admin/messages' ? 'Messages' : pathname.startsWith('/admin/orders/') ? 'Order Detail' : 'Admin'}
           </h2>

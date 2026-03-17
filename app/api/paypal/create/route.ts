@@ -1,17 +1,24 @@
 import { NextResponse } from 'next/server'
 
-const PAYPAL_API = process.env.PAYPAL_MODE === 'live'
-  ? 'https://api-m.paypal.com'
-  : 'https://api-m.sandbox.paypal.com'
+function getPayPalAPI() {
+  return process.env.PAYPAL_MODE === 'live'
+    ? 'https://api-m.paypal.com'
+    : 'https://api-m.sandbox.paypal.com'
+}
 
 async function getAccessToken() {
   const clientId = process.env.NEXT_PUBLIC_PAYPAL_CLIENT_ID
   const secret = process.env.PAYPAL_SECRET
-  console.log('[PayPal] getAccessToken - has clientId:', !!clientId, 'has secret:', !!secret, 'API:', PAYPAL_API)
+  const api = getPayPalAPI()
+  console.log('[PayPal] getAccessToken - has clientId:', !!clientId, 'has secret:', !!secret, 'mode:', process.env.PAYPAL_MODE, 'API:', api)
+
+  if (!clientId || !secret) {
+    throw new Error('PayPal credentials not configured')
+  }
 
   const auth = Buffer.from(`${clientId}:${secret}`).toString('base64')
 
-  const res = await fetch(`${PAYPAL_API}/v1/oauth2/token`, {
+  const res = await fetch(`${api}/v1/oauth2/token`, {
     method: 'POST',
     headers: {
       Authorization: `Basic ${auth}`,
@@ -38,8 +45,9 @@ export async function POST(req: Request) {
     }
 
     const accessToken = await getAccessToken()
+    const api = getPayPalAPI()
 
-    const res = await fetch(`${PAYPAL_API}/v2/checkout/orders`, {
+    const res = await fetch(`${api}/v2/checkout/orders`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -63,13 +71,13 @@ export async function POST(req: Request) {
     const data = await res.json()
 
     if (!res.ok) {
-      console.error('PayPal create order error:', data)
-      return NextResponse.json({ error: 'Failed to create PayPal order' }, { status: 500 })
+      console.error('[PayPal] create order error:', JSON.stringify(data))
+      return NextResponse.json({ error: `PayPal error: ${JSON.stringify(data)}` }, { status: 500 })
     }
 
     return NextResponse.json({ id: data.id })
   } catch (err) {
-    console.error('PayPal create error:', err)
-    return NextResponse.json({ error: 'Something went wrong' }, { status: 500 })
+    console.error('[PayPal] create error:', err)
+    return NextResponse.json({ error: err instanceof Error ? err.message : 'Something went wrong' }, { status: 500 })
   }
 }

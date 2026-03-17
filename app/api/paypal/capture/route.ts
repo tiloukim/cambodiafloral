@@ -1,16 +1,24 @@
 import { NextResponse } from 'next/server'
 import { createServiceClient } from '@/lib/supabase/server'
 
-const PAYPAL_API = process.env.PAYPAL_MODE === 'live'
-  ? 'https://api-m.paypal.com'
-  : 'https://api-m.sandbox.paypal.com'
+function getPayPalAPI() {
+  return process.env.PAYPAL_MODE === 'live'
+    ? 'https://api-m.paypal.com'
+    : 'https://api-m.sandbox.paypal.com'
+}
 
 async function getAccessToken() {
-  const auth = Buffer.from(
-    `${process.env.NEXT_PUBLIC_PAYPAL_CLIENT_ID}:${process.env.PAYPAL_SECRET}`
-  ).toString('base64')
+  const clientId = process.env.NEXT_PUBLIC_PAYPAL_CLIENT_ID
+  const secret = process.env.PAYPAL_SECRET
+  const api = getPayPalAPI()
 
-  const res = await fetch(`${PAYPAL_API}/v1/oauth2/token`, {
+  if (!clientId || !secret) {
+    throw new Error('PayPal credentials not configured')
+  }
+
+  const auth = Buffer.from(`${clientId}:${secret}`).toString('base64')
+
+  const res = await fetch(`${api}/v1/oauth2/token`, {
     method: 'POST',
     headers: {
       Authorization: `Basic ${auth}`,
@@ -20,6 +28,9 @@ async function getAccessToken() {
   })
 
   const data = await res.json()
+  if (!res.ok) {
+    throw new Error(`PayPal auth failed: ${data.error_description || data.error || 'unknown'}`)
+  }
   return data.access_token
 }
 
@@ -32,9 +43,9 @@ export async function POST(req: Request) {
     }
 
     const accessToken = await getAccessToken()
+    const api = getPayPalAPI()
 
-    // Capture the PayPal order
-    const res = await fetch(`${PAYPAL_API}/v2/checkout/orders/${paypal_order_id}/capture`, {
+    const res = await fetch(`${api}/v2/checkout/orders/${paypal_order_id}/capture`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -45,11 +56,11 @@ export async function POST(req: Request) {
     const data = await res.json()
 
     if (!res.ok || data.status !== 'COMPLETED') {
-      console.error('PayPal capture error:', data)
+      console.error('[PayPal] capture error:', JSON.stringify(data))
       return NextResponse.json({ error: 'Payment capture failed' }, { status: 500 })
     }
 
-    // Update order in database with PayPal payment info
+    // Update order in database
     const supabase = createServiceClient()
     const captureId = data.purchase_units?.[0]?.payments?.captures?.[0]?.id
 
@@ -64,7 +75,7 @@ export async function POST(req: Request) {
 
     return NextResponse.json({ success: true })
   } catch (err) {
-    console.error('PayPal capture error:', err)
-    return NextResponse.json({ error: 'Something went wrong' }, { status: 500 })
+    console.error('[PayPal] capture error:', err)
+    return NextResponse.json({ error: err instanceof Error ? err.message : 'Something went wrong' }, { status: 500 })
   }
 }

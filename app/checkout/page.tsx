@@ -139,9 +139,10 @@ function CheckoutContent() {
         })
 
         if (!ppRes.ok) {
-          setError('Failed to create PayPal payment')
+          const ppErr = await ppRes.json()
+          setError(ppErr.error || 'Failed to create PayPal payment')
           setSubmitting(false)
-          throw new Error('PayPal order creation failed')
+          throw new Error(ppErr.error || 'PayPal order creation failed')
         }
 
         const ppData = await ppRes.json()

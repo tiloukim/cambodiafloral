@@ -1,9 +1,7 @@
 import { NextResponse } from 'next/server'
-import Stripe from 'stripe'
 import { createClient, createServiceClient } from '@/lib/supabase/server'
 import { notifyOrderAdmin } from '@/lib/notify'
 
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!)
 const DELIVERY_FEE = 5
 
 export async function POST(req: Request) {
@@ -89,7 +87,7 @@ export async function POST(req: Request) {
       subtotal,
       delivery_fee: DELIVERY_FEE,
       total,
-      payment_method: 'stripe',
+      payment_method: 'paypal',
       sender_name: body.sender_name,
       sender_email: body.sender_email,
       sender_phone: body.sender_phone || null,
@@ -146,55 +144,5 @@ export async function POST(req: Request) {
     type: 'new_order',
   })
 
-  // Create Stripe Checkout Session
-  const origin = new URL(req.url).origin
-
-  const lineItems: Stripe.Checkout.SessionCreateParams.LineItem[] = body.items.map((item: { title: string; price: number; quantity: number; image_url: string }) => {
-    const images: string[] = []
-    if (item.image_url) {
-      // Ensure fully qualified URL for Stripe
-      const imgUrl = item.image_url.startsWith('http') ? item.image_url : `${origin}${item.image_url}`
-      images.push(imgUrl)
-    }
-    return {
-      price_data: {
-        currency: 'usd',
-        product_data: {
-          name: item.title,
-          ...(images.length > 0 ? { images } : {}),
-        },
-        unit_amount: Math.round(item.price * 100),
-      },
-      quantity: item.quantity,
-    }
-  })
-
-  // Add delivery fee as a line item
-  lineItems.push({
-    price_data: {
-      currency: 'usd',
-      product_data: { name: 'Delivery Fee' },
-      unit_amount: DELIVERY_FEE * 100,
-    },
-    quantity: 1,
-  })
-
-  try {
-    const session = await stripe.checkout.sessions.create({
-      mode: 'payment',
-      payment_method_types: ['card'],
-      line_items: lineItems,
-      customer_email: body.sender_email,
-      metadata: {
-        order_id: order.id,
-      },
-      success_url: `${origin}/checkout/success?order=${order.id}`,
-      cancel_url: `${origin}/checkout?cancelled=true`,
-    })
-
-    return NextResponse.json({ url: session.url, order_id: order.id })
-  } catch (err) {
-    console.error('Stripe session error:', err)
-    return NextResponse.json({ error: err instanceof Error ? err.message : 'Failed to create payment session' }, { status: 500 })
-  }
+  return NextResponse.json({ order_id: order.id, total })
 }

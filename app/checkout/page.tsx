@@ -1,6 +1,7 @@
 'use client'
 
-import { useState, Suspense } from 'react'
+import { useState, useEffect, useRef, useCallback, Suspense } from 'react'
+import Script from 'next/script'
 import { useRouter, useSearchParams } from 'next/navigation'
 import Navbar from '@/components/Navbar'
 import Footer from '@/components/Footer'
@@ -40,54 +41,128 @@ function CheckoutContent() {
   const searchParams = useSearchParams()
   const [error, setError] = useState(searchParams.get('cancelled') ? 'Payment was cancelled. You can try again.' : '')
   const [submitting, setSubmitting] = useState(false)
+  const [paypalReady, setPaypalReady] = useState(false)
+  const paypalRef = useRef<HTMLDivElement>(null)
+  const paypalRendered = useRef(false)
 
-  const handlePlaceOrder = async (e: React.FormEvent) => {
-    e.preventDefault()
-    if (items.length === 0) return
-    setError('')
-    setSubmitting(true)
+  const getOrderBody = useCallback(() => ({
+    sender_name: senderName,
+    sender_email: senderEmail,
+    sender_phone: senderPhone,
+    sender_country: senderCountry,
+    recipient_name: recipientName,
+    recipient_phone: recipientPhone,
+    recipient_address: recipientAddress,
+    recipient_city: recipientCity,
+    delivery_date: deliveryDate || null,
+    delivery_time: deliveryTime || null,
+    card_message: cardMessage || null,
+    payment_method: 'paypal',
+    items: items.map(i => ({
+      product_id: i.id,
+      sku: i.sku || null,
+      title: i.title,
+      price: i.price,
+      quantity: i.qty,
+      image_url: i.img,
+    })),
+  }), [senderName, senderEmail, senderPhone, senderCountry, recipientName, recipientPhone, recipientAddress, recipientCity, deliveryDate, deliveryTime, cardMessage, items])
 
-    try {
-      const res = await fetch('/api/checkout', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          sender_name: senderName,
-          sender_email: senderEmail,
-          sender_phone: senderPhone,
-          sender_country: senderCountry,
-          recipient_name: recipientName,
-          recipient_phone: recipientPhone,
-          recipient_address: recipientAddress,
-          recipient_city: recipientCity,
-          delivery_date: deliveryDate || null,
-          delivery_time: deliveryTime || null,
-          card_message: cardMessage || null,
-          items: items.map(i => ({
-            product_id: i.id,
-            sku: i.sku || null,
-            title: i.title,
-            price: i.price,
-            quantity: i.qty,
-            image_url: i.img,
-          })),
-        }),
-      })
-
-      if (!res.ok) {
-        const data = await res.json()
-        setError(data.error || 'Failed to create checkout')
-        setSubmitting(false)
-        return
-      }
-
-      const { url } = await res.json()
-      window.location.href = url
-    } catch {
-      setError('Something went wrong. Please try again.')
-      setSubmitting(false)
+  const validateForm = useCallback(() => {
+    if (!senderName || !senderEmail || !recipientName || !recipientPhone || !recipientAddress || !recipientCity) {
+      setError('Please fill in all required fields')
+      return false
     }
-  }
+    if (items.length === 0) {
+      setError('Your cart is empty')
+      return false
+    }
+    return true
+  }, [senderName, senderEmail, recipientName, recipientPhone, recipientAddress, recipientCity, items])
+
+  // Render PayPal buttons when SDK is ready
+  useEffect(() => {
+    if (!paypalReady || !paypalRef.current || paypalRendered.current) return
+    if (typeof window === 'undefined' || !(window as unknown as Record<string, unknown>).paypal) return
+
+    paypalRendered.current = true
+    const paypal = (window as unknown as Record<string, unknown>).paypal as {
+      Buttons: (config: Record<string, unknown>) => { render: (el: HTMLElement) => void }
+    }
+
+    paypal.Buttons({
+      style: {
+        layout: 'vertical',
+        color: 'gold',
+        shape: 'rect',
+        label: 'paypal',
+        height: 50,
+      },
+      createOrder: async () => {
+        if (!validateForm()) throw new Error('Validation failed')
+        setError('')
+        setSubmitting(true)
+
+        // Create order in our DB
+        const res = await fetch('/api/checkout', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(getOrderBody()),
+        })
+
+        if (!res.ok) {
+          const data = await res.json()
+          setError(data.error || 'Failed to create order')
+          setSubmitting(false)
+          throw new Error('Order creation failed')
+        }
+
+        const { order_id, total: orderTotal } = await res.json()
+
+        // Create PayPal order
+        const ppRes = await fetch('/api/paypal/create', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ order_id, total: orderTotal }),
+        })
+
+        if (!ppRes.ok) {
+          setError('Failed to create PayPal payment')
+          setSubmitting(false)
+          throw new Error('PayPal order creation failed')
+        }
+
+        const ppData = await ppRes.json()
+        paypalRef.current?.setAttribute('data-order-id', order_id)
+        return ppData.id
+      },
+      onApprove: async (data: { orderID: string }) => {
+        const orderId = paypalRef.current?.getAttribute('data-order-id')
+
+        const res = await fetch('/api/paypal/capture', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ paypal_order_id: data.orderID, order_id: orderId }),
+        })
+
+        if (res.ok) {
+          clearCart()
+          router.push(`/checkout/success?order=${orderId}`)
+        } else {
+          setError('Payment capture failed. Please contact support.')
+          setSubmitting(false)
+        }
+      },
+      onCancel: () => {
+        setError('PayPal payment was cancelled.')
+        setSubmitting(false)
+      },
+      onError: () => {
+        setError('PayPal encountered an error. Please try again.')
+        setSubmitting(false)
+      },
+    }).render(paypalRef.current!)
+  }, [paypalReady, validateForm, getOrderBody, clearCart, router])
 
   const inputStyle: React.CSSProperties = {
     width: '100%',
@@ -145,151 +220,148 @@ function CheckoutContent() {
           Checkout
         </h1>
 
-        <form onSubmit={handlePlaceOrder}>
-          <div className="grid-checkout">
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 28 }}>
-              {/* Sender Info */}
-              <div style={{ background: '#fff', borderRadius: 16, border: '1px solid #FFE4EF', padding: 24 }}>
-                <h2 style={{ fontSize: 18, fontWeight: 700, color: '#4A3040', marginBottom: 20 }}>Sender Information</h2>
-                <div className="grid-form-2col">
-                  <div>
-                    <label style={labelStyle}>Your Name *</label>
-                    <input type="text" value={senderName} onChange={e => setSenderName(e.target.value)} required style={inputStyle} placeholder="John Smith" />
-                  </div>
-                  <div>
-                    <label style={labelStyle}>Email *</label>
-                    <input type="email" value={senderEmail} onChange={e => setSenderEmail(e.target.value)} required style={inputStyle} placeholder="john@example.com" />
-                  </div>
-                  <div>
-                    <label style={labelStyle}>Phone</label>
-                    <input type="tel" value={senderPhone} onChange={e => setSenderPhone(e.target.value)} style={inputStyle} placeholder="+1 555-0123" />
-                  </div>
-                  <div>
-                    <label style={labelStyle}>Country</label>
-                    <input type="text" value={senderCountry} onChange={e => setSenderCountry(e.target.value)} style={inputStyle} placeholder="United States" />
-                  </div>
+        <div className="grid-checkout">
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 28 }}>
+            {/* Sender Info */}
+            <div style={{ background: '#fff', borderRadius: 16, border: '1px solid #FFE4EF', padding: 24 }}>
+              <h2 style={{ fontSize: 18, fontWeight: 700, color: '#4A3040', marginBottom: 20 }}>Sender Information</h2>
+              <div className="grid-form-2col">
+                <div>
+                  <label style={labelStyle}>Your Name *</label>
+                  <input type="text" value={senderName} onChange={e => setSenderName(e.target.value)} style={inputStyle} placeholder="John Smith" />
                 </div>
-              </div>
-
-              {/* Recipient Info */}
-              <div style={{ background: '#fff', borderRadius: 16, border: '1px solid #FFE4EF', padding: 24 }}>
-                <h2 style={{ fontSize: 18, fontWeight: 700, color: '#4A3040', marginBottom: 20 }}>Recipient Information</h2>
-                <div className="grid-form-2col">
-                  <div>
-                    <label style={labelStyle}>Recipient Name *</label>
-                    <input type="text" value={recipientName} onChange={e => setRecipientName(e.target.value)} required style={inputStyle} placeholder="Sophea Chan" />
-                  </div>
-                  <div>
-                    <label style={labelStyle}>Recipient Phone *</label>
-                    <input type="tel" value={recipientPhone} onChange={e => setRecipientPhone(e.target.value)} required style={inputStyle} placeholder="+855 12 345 678" />
-                  </div>
-                  <div style={{ gridColumn: '1 / -1' }}>
-                    <label style={labelStyle}>Delivery Address *</label>
-                    <input type="text" value={recipientAddress} onChange={e => setRecipientAddress(e.target.value)} required style={inputStyle} placeholder="Street 123, Sangkat Boeung Keng Kang" />
-                  </div>
-                  <div>
-                    <label style={labelStyle}>City *</label>
-                    <select value={recipientCity} onChange={e => setRecipientCity(e.target.value)} required style={inputStyle}>
-                      {CITIES.map(c => <option key={c} value={c}>{c}</option>)}
-                    </select>
-                  </div>
-                  <div>
-                    <label style={labelStyle}>Delivery Date</label>
-                    <input type="date" value={deliveryDate} onChange={e => setDeliveryDate(e.target.value)} style={inputStyle} min={new Date().toISOString().split('T')[0]} />
-                  </div>
-                  <div>
-                    <label style={labelStyle}>Preferred Time</label>
-                    <select value={deliveryTime.startsWith('specific') ? 'specific' : deliveryTime} onChange={e => setDeliveryTime(e.target.value)} style={inputStyle}>
-                      <option value="">Any time</option>
-                      <option value="morning">Morning (8AM - 12PM)</option>
-                      <option value="afternoon">Afternoon (12PM - 5PM)</option>
-                      <option value="evening">Evening (5PM - 8PM)</option>
-                      <option value="specific">Specific time...</option>
-                    </select>
-                  </div>
-                  {deliveryTime.startsWith('specific') && (
-                    <div>
-                      <label style={labelStyle}>Specify Time</label>
-                      <input type="time" value={deliveryTime.includes(':') ? deliveryTime.replace('specific:', '') : ''} onChange={e => setDeliveryTime(`specific:${e.target.value}`)} style={inputStyle} />
-                    </div>
-                  )}
-                  <div style={{ gridColumn: '1 / -1' }}>
-                    <label style={labelStyle}>Card Message</label>
-                    <textarea
-                      value={cardMessage}
-                      onChange={e => setCardMessage(e.target.value)}
-                      style={{ ...inputStyle, minHeight: 80, resize: 'vertical' }}
-                      placeholder="Write a personal message to include with the flowers..."
-                    />
-                  </div>
+                <div>
+                  <label style={labelStyle}>Email *</label>
+                  <input type="email" value={senderEmail} onChange={e => setSenderEmail(e.target.value)} style={inputStyle} placeholder="john@example.com" />
+                </div>
+                <div>
+                  <label style={labelStyle}>Phone</label>
+                  <input type="tel" value={senderPhone} onChange={e => setSenderPhone(e.target.value)} style={inputStyle} placeholder="+1 555-0123" />
+                </div>
+                <div>
+                  <label style={labelStyle}>Country</label>
+                  <input type="text" value={senderCountry} onChange={e => setSenderCountry(e.target.value)} style={inputStyle} placeholder="United States" />
                 </div>
               </div>
             </div>
 
-            {/* Order Summary */}
-            <div style={{
-              background: '#fff',
-              borderRadius: 16,
-              border: '1px solid #FFE4EF',
-              padding: 24,
-              position: 'sticky',
-              top: 80,
-            }}>
-              <h2 style={{ fontSize: 18, fontWeight: 700, color: '#4A3040', marginBottom: 20 }}>Order Summary</h2>
-
-              {items.map(item => (
-                <div key={item.id} style={{ display: 'flex', gap: 12, marginBottom: 12 }}>
-                  {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img src={item.img} alt={item.title} style={{ width: 48, height: 48, objectFit: 'cover', borderRadius: 8 }} />
-                  <div style={{ flex: 1 }}>
-                    <div style={{ fontSize: 13, fontWeight: 600, color: '#4A3040' }}>{item.title}</div>
-                    <div style={{ fontSize: 12, color: '#9C7A8E' }}>Qty: {item.qty}</div>
+            {/* Recipient Info */}
+            <div style={{ background: '#fff', borderRadius: 16, border: '1px solid #FFE4EF', padding: 24 }}>
+              <h2 style={{ fontSize: 18, fontWeight: 700, color: '#4A3040', marginBottom: 20 }}>Recipient Information</h2>
+              <div className="grid-form-2col">
+                <div>
+                  <label style={labelStyle}>Recipient Name *</label>
+                  <input type="text" value={recipientName} onChange={e => setRecipientName(e.target.value)} style={inputStyle} placeholder="Sophea Chan" />
+                </div>
+                <div>
+                  <label style={labelStyle}>Recipient Phone *</label>
+                  <input type="tel" value={recipientPhone} onChange={e => setRecipientPhone(e.target.value)} style={inputStyle} placeholder="+855 12 345 678" />
+                </div>
+                <div style={{ gridColumn: '1 / -1' }}>
+                  <label style={labelStyle}>Delivery Address *</label>
+                  <input type="text" value={recipientAddress} onChange={e => setRecipientAddress(e.target.value)} style={inputStyle} placeholder="Street 123, Sangkat Boeung Keng Kang" />
+                </div>
+                <div>
+                  <label style={labelStyle}>City *</label>
+                  <select value={recipientCity} onChange={e => setRecipientCity(e.target.value)} style={inputStyle}>
+                    {CITIES.map(c => <option key={c} value={c}>{c}</option>)}
+                  </select>
+                </div>
+                <div>
+                  <label style={labelStyle}>Delivery Date</label>
+                  <input type="date" value={deliveryDate} onChange={e => setDeliveryDate(e.target.value)} style={inputStyle} min={new Date().toISOString().split('T')[0]} />
+                </div>
+                <div>
+                  <label style={labelStyle}>Preferred Time</label>
+                  <select value={deliveryTime.startsWith('specific') ? 'specific' : deliveryTime} onChange={e => setDeliveryTime(e.target.value)} style={inputStyle}>
+                    <option value="">Any time</option>
+                    <option value="morning">Morning (8AM - 12PM)</option>
+                    <option value="afternoon">Afternoon (12PM - 5PM)</option>
+                    <option value="evening">Evening (5PM - 8PM)</option>
+                    <option value="specific">Specific time...</option>
+                  </select>
+                </div>
+                {deliveryTime.startsWith('specific') && (
+                  <div>
+                    <label style={labelStyle}>Specify Time</label>
+                    <input type="time" value={deliveryTime.includes(':') ? deliveryTime.replace('specific:', '') : ''} onChange={e => setDeliveryTime(`specific:${e.target.value}`)} style={inputStyle} />
                   </div>
-                  <div style={{ fontSize: 14, fontWeight: 700, color: '#4A3040' }}>${(item.price * item.qty).toFixed(2)}</div>
-                </div>
-              ))}
-
-              <div style={{ borderTop: '1px solid #FFE4EF', marginTop: 16, paddingTop: 16 }}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 8, fontSize: 14, color: '#7A5A6A' }}>
-                  <span>Subtotal</span>
-                  <span>${total.toFixed(2)}</span>
-                </div>
-                <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 12, fontSize: 14, color: '#7A5A6A' }}>
-                  <span>Delivery Fee</span>
-                  <span>${DELIVERY_FEE.toFixed(2)}</span>
-                </div>
-                <div style={{ borderTop: '1px solid #FFE4EF', paddingTop: 12, display: 'flex', justifyContent: 'space-between' }}>
-                  <span style={{ fontSize: 17, fontWeight: 700, color: '#4A3040' }}>Total</span>
-                  <span style={{ fontSize: 17, fontWeight: 700, color: '#DB2777' }}>${(total + DELIVERY_FEE).toFixed(2)}</span>
+                )}
+                <div style={{ gridColumn: '1 / -1' }}>
+                  <label style={labelStyle}>Card Message</label>
+                  <textarea
+                    value={cardMessage}
+                    onChange={e => setCardMessage(e.target.value)}
+                    style={{ ...inputStyle, minHeight: 80, resize: 'vertical' }}
+                    placeholder="Write a personal message to include with the flowers..."
+                  />
                 </div>
               </div>
-
-              {error && <div style={{ color: '#DC2626', fontSize: 13, fontWeight: 600, marginTop: 16 }}>{error}</div>}
-
-              <button
-                type="submit"
-                disabled={submitting}
-                style={{
-                  width: '100%',
-                  padding: '16px',
-                  borderRadius: 12,
-                  fontSize: 16,
-                  fontWeight: 700,
-                  border: 'none',
-                  cursor: submitting ? 'not-allowed' : 'pointer',
-                  background: '#EC4899',
-                  color: '#fff',
-                  marginTop: 20,
-                  opacity: submitting ? 0.7 : 1,
-                }}
-              >
-                {submitting ? 'Redirecting to payment...' : 'Pay with Stripe'}
-              </button>
             </div>
           </div>
-        </form>
+
+          {/* Order Summary */}
+          <div style={{
+            background: '#fff',
+            borderRadius: 16,
+            border: '1px solid #FFE4EF',
+            padding: 24,
+            position: 'sticky',
+            top: 80,
+          }}>
+            <h2 style={{ fontSize: 18, fontWeight: 700, color: '#4A3040', marginBottom: 20 }}>Order Summary</h2>
+
+            {items.map(item => (
+              <div key={item.id} style={{ display: 'flex', gap: 12, marginBottom: 12 }}>
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img src={item.img} alt={item.title} style={{ width: 48, height: 48, objectFit: 'cover', borderRadius: 8 }} />
+                <div style={{ flex: 1 }}>
+                  <div style={{ fontSize: 13, fontWeight: 600, color: '#4A3040' }}>{item.title}</div>
+                  <div style={{ fontSize: 12, color: '#9C7A8E' }}>Qty: {item.qty}</div>
+                </div>
+                <div style={{ fontSize: 14, fontWeight: 700, color: '#4A3040' }}>${(item.price * item.qty).toFixed(2)}</div>
+              </div>
+            ))}
+
+            <div style={{ borderTop: '1px solid #FFE4EF', marginTop: 16, paddingTop: 16 }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 8, fontSize: 14, color: '#7A5A6A' }}>
+                <span>Subtotal</span>
+                <span>${total.toFixed(2)}</span>
+              </div>
+              <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 12, fontSize: 14, color: '#7A5A6A' }}>
+                <span>Delivery Fee</span>
+                <span>${DELIVERY_FEE.toFixed(2)}</span>
+              </div>
+              <div style={{ borderTop: '1px solid #FFE4EF', paddingTop: 12, display: 'flex', justifyContent: 'space-between' }}>
+                <span style={{ fontSize: 17, fontWeight: 700, color: '#4A3040' }}>Total</span>
+                <span style={{ fontSize: 17, fontWeight: 700, color: '#DB2777' }}>${(total + DELIVERY_FEE).toFixed(2)}</span>
+              </div>
+            </div>
+
+            {error && <div style={{ color: '#DC2626', fontSize: 13, fontWeight: 600, marginTop: 16 }}>{error}</div>}
+
+            {/* PayPal Payment */}
+            <div style={{ marginTop: 20 }}>
+              {!paypalReady && (
+                <div style={{ textAlign: 'center', padding: 16, color: '#C9A0B4', fontSize: 14 }}>
+                  Loading payment...
+                </div>
+              )}
+              <div ref={paypalRef} />
+              {submitting && (
+                <div style={{ textAlign: 'center', padding: 12, color: '#9C7A8E', fontSize: 14 }}>
+                  Processing your payment...
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
       </div>
 
+      <Script
+        src={`https://www.paypal.com/sdk/js?client-id=${process.env.NEXT_PUBLIC_PAYPAL_CLIENT_ID}&currency=USD`}
+        onReady={() => setPaypalReady(true)}
+      />
       <Footer />
     </div>
   )

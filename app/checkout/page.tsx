@@ -45,42 +45,22 @@ function CheckoutContent() {
   const paypalRef = useRef<HTMLDivElement>(null)
   const paypalRendered = useRef(false)
 
-  const getOrderBody = useCallback(() => ({
-    sender_name: senderName,
-    sender_email: senderEmail,
-    sender_phone: senderPhone,
-    sender_country: senderCountry,
-    recipient_name: recipientName,
-    recipient_phone: recipientPhone,
-    recipient_address: recipientAddress,
-    recipient_city: recipientCity,
-    delivery_date: deliveryDate || null,
-    delivery_time: deliveryTime || null,
-    card_message: cardMessage || null,
-    payment_method: 'paypal',
-    items: items.map(i => ({
-      product_id: i.id,
-      sku: i.sku || null,
-      title: i.title,
-      price: i.price,
-      quantity: i.qty,
-      image_url: i.img,
-    })),
-  }), [senderName, senderEmail, senderPhone, senderCountry, recipientName, recipientPhone, recipientAddress, recipientCity, deliveryDate, deliveryTime, cardMessage, items])
+  // Use refs so PayPal callbacks always read latest values (avoids stale closure)
+  const formRef = useRef({
+    senderName, senderEmail, senderPhone, senderCountry,
+    recipientName, recipientPhone, recipientAddress, recipientCity,
+    deliveryDate, deliveryTime, cardMessage, items,
+  })
+  formRef.current = {
+    senderName, senderEmail, senderPhone, senderCountry,
+    recipientName, recipientPhone, recipientAddress, recipientCity,
+    deliveryDate, deliveryTime, cardMessage, items,
+  }
 
-  const validateForm = useCallback(() => {
-    if (!senderName || !senderEmail || !recipientName || !recipientPhone || !recipientAddress || !recipientCity) {
-      setError('Please fill in all required fields')
-      return false
-    }
-    if (items.length === 0) {
-      setError('Your cart is empty')
-      return false
-    }
-    return true
-  }, [senderName, senderEmail, recipientName, recipientPhone, recipientAddress, recipientCity, items])
+  const clearCartRef = useRef(clearCart)
+  clearCartRef.current = clearCart
 
-  // Render PayPal buttons when SDK is ready
+  // Render PayPal buttons once when SDK is ready
   useEffect(() => {
     if (!paypalReady || !paypalRef.current || paypalRendered.current) return
     if (typeof window === 'undefined' || !(window as unknown as Record<string, unknown>).paypal) return
@@ -99,15 +79,47 @@ function CheckoutContent() {
         height: 50,
       },
       createOrder: async () => {
-        if (!validateForm()) throw new Error('Validation failed')
+        const f = formRef.current
+        // Validate
+        if (!f.senderName || !f.senderEmail || !f.recipientName || !f.recipientPhone || !f.recipientAddress || !f.recipientCity) {
+          setError('Please fill in all required fields')
+          throw new Error('Validation failed')
+        }
+        if (f.items.length === 0) {
+          setError('Your cart is empty')
+          throw new Error('Validation failed')
+        }
         setError('')
         setSubmitting(true)
+
+        const orderBody = {
+          sender_name: f.senderName,
+          sender_email: f.senderEmail,
+          sender_phone: f.senderPhone,
+          sender_country: f.senderCountry,
+          recipient_name: f.recipientName,
+          recipient_phone: f.recipientPhone,
+          recipient_address: f.recipientAddress,
+          recipient_city: f.recipientCity,
+          delivery_date: f.deliveryDate || null,
+          delivery_time: f.deliveryTime || null,
+          card_message: f.cardMessage || null,
+          payment_method: 'paypal',
+          items: f.items.map(i => ({
+            product_id: i.id,
+            sku: i.sku || null,
+            title: i.title,
+            price: i.price,
+            quantity: i.qty,
+            image_url: i.img,
+          })),
+        }
 
         // Create order in our DB
         const res = await fetch('/api/checkout', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(getOrderBody()),
+          body: JSON.stringify(orderBody),
         })
 
         if (!res.ok) {
@@ -146,7 +158,7 @@ function CheckoutContent() {
         })
 
         if (res.ok) {
-          clearCart()
+          clearCartRef.current()
           router.push(`/checkout/success?order=${orderId}`)
         } else {
           setError('Payment capture failed. Please contact support.')
@@ -163,7 +175,7 @@ function CheckoutContent() {
         setSubmitting(false)
       },
     }).render(paypalRef.current!)
-  }, [paypalReady, validateForm, getOrderBody, clearCart, router])
+  }, [paypalReady, router])
 
   const inputStyle: React.CSSProperties = {
     width: '100%',

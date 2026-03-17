@@ -40,7 +40,9 @@ export async function POST(req: Request) {
   try {
     const { order_id, total } = await req.json()
 
-    if (!order_id || !total) {
+    console.log('[PayPal] create order - order_id:', order_id, 'total:', total, 'type:', typeof total)
+
+    if (!order_id || total === undefined || total === null) {
       return NextResponse.json({ error: 'Missing order_id or total' }, { status: 400 })
     }
 
@@ -58,10 +60,10 @@ export async function POST(req: Request) {
         purchase_units: [
           {
             reference_id: order_id,
-            description: `Cambodia Floral Order #${order_id.slice(0, 8)}`,
+            description: `Cambodia Floral Order`,
             amount: {
               currency_code: 'USD',
-              value: total.toFixed(2),
+              value: String(parseFloat(Number(total).toFixed(2))),
             },
           },
         ],

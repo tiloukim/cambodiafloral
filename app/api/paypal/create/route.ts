@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server'
 
-const PAYPAL_API = process.env.PAYPAL_SECRET?.startsWith('live')
+const PAYPAL_API = process.env.PAYPAL_MODE === 'live'
   ? 'https://api-m.paypal.com'
   : 'https://api-m.sandbox.paypal.com'
 

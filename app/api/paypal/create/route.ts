@@ -5,9 +5,11 @@ const PAYPAL_API = process.env.PAYPAL_MODE === 'live'
   : 'https://api-m.sandbox.paypal.com'
 
 async function getAccessToken() {
-  const auth = Buffer.from(
-    `${process.env.NEXT_PUBLIC_PAYPAL_CLIENT_ID}:${process.env.PAYPAL_SECRET}`
-  ).toString('base64')
+  const clientId = process.env.NEXT_PUBLIC_PAYPAL_CLIENT_ID
+  const secret = process.env.PAYPAL_SECRET
+  console.log('[PayPal] getAccessToken - has clientId:', !!clientId, 'has secret:', !!secret, 'API:', PAYPAL_API)
+
+  const auth = Buffer.from(`${clientId}:${secret}`).toString('base64')
 
   const res = await fetch(`${PAYPAL_API}/v1/oauth2/token`, {
     method: 'POST',
@@ -19,6 +21,11 @@ async function getAccessToken() {
   })
 
   const data = await res.json()
+  console.log('[PayPal] token response status:', res.status, 'has token:', !!data.access_token)
+  if (!res.ok) {
+    console.error('[PayPal] token error:', JSON.stringify(data))
+    throw new Error(`PayPal auth failed: ${data.error_description || data.error || 'unknown'}`)
+  }
   return data.access_token
 }
 

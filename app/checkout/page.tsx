@@ -157,8 +157,9 @@ function CheckoutContent() {
         setError('PayPal payment was cancelled.')
         setSubmitting(false)
       },
-      onError: () => {
-        setError('PayPal encountered an error. Please try again.')
+      onError: (err: unknown) => {
+        console.error('PayPal error:', err)
+        setError(`PayPal error: ${err instanceof Error ? err.message : String(err)}`)
         setSubmitting(false)
       },
     }).render(paypalRef.current!)

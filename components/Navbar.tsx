@@ -57,6 +57,7 @@ export default function Navbar() {
         {/* Desktop nav */}
         <div className="nav-links">
           <Link href="/shop" style={navLinkStyle}>Shop</Link>
+          <Link href="/custom-order" style={navLinkStyle}>Custom Order</Link>
           <Link href="/about" style={navLinkStyle}>About</Link>
           <Link href="/contact" style={navLinkStyle}>Contact</Link>
           <Link href="/track" style={navLinkStyle}>Track Order</Link>
@@ -175,6 +176,7 @@ export default function Navbar() {
       {/* Mobile menu */}
       <div className={`nav-mobile-menu ${mobileOpen ? 'open' : ''}`}>
         <Link href="/shop" onClick={() => setMobileOpen(false)} style={navLinkStyle}>Shop</Link>
+        <Link href="/custom-order" onClick={() => setMobileOpen(false)} style={navLinkStyle}>Custom Order</Link>
         <Link href="/about" onClick={() => setMobileOpen(false)} style={navLinkStyle}>About</Link>
         <Link href="/contact" onClick={() => setMobileOpen(false)} style={navLinkStyle}>Contact</Link>
         <Link href="/track" onClick={() => setMobileOpen(false)} style={navLinkStyle}>Track Order</Link>

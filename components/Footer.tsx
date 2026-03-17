@@ -23,6 +23,8 @@ export default function Footer() {
             <Link href="/shop?category=bouquets" style={{ fontSize: 13, color: '#C9A0B4', textDecoration: 'none' }}>Bouquets</Link>
             <Link href="/shop?category=arrangements" style={{ fontSize: 13, color: '#C9A0B4', textDecoration: 'none' }}>Arrangements</Link>
             <Link href="/shop?category=baskets" style={{ fontSize: 13, color: '#C9A0B4', textDecoration: 'none' }}>Gift Baskets</Link>
+            <Link href="/shop?category=gifts" style={{ fontSize: 13, color: '#C9A0B4', textDecoration: 'none' }}>Gifts</Link>
+            <Link href="/custom-order" style={{ fontSize: 13, color: '#C9A0B4', textDecoration: 'none' }}>Custom Order</Link>
           </div>
         </div>
         <div className="footer-col">

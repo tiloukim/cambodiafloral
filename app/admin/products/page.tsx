@@ -3,7 +3,7 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react'
 import type { Product } from '@/lib/types'
 
-const CATEGORIES = ['bouquets', 'arrangements', 'baskets', 'wedding', 'sympathy', 'plants', 'cakes']
+const CATEGORIES = ['bouquets', 'arrangements', 'baskets', 'wedding', 'sympathy', 'plants', 'cakes', 'gifts']
 const OCCASIONS = ['Birthday', 'Anniversary', "Valentine's", 'Congratulations', 'Get Well', 'Sympathy']
 const BADGES = ['NEW', 'BEST', 'POPULAR', 'SALE', 'LIMITED']
 

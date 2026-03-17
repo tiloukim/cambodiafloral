@@ -2,12 +2,13 @@
 
 import { useState, useEffect, Suspense } from 'react'
 import { useSearchParams } from 'next/navigation'
+import Link from 'next/link'
 import Navbar from '@/components/Navbar'
 import Footer from '@/components/Footer'
 import ProductCard from '@/components/ProductCard'
 import type { Product } from '@/lib/types'
 
-const CATEGORIES = ['All', 'Bouquets', 'Arrangements', 'Baskets', 'Wedding', 'Sympathy', 'Plants', 'Cakes']
+const CATEGORIES = ['All', 'Bouquets', 'Arrangements', 'Baskets', 'Wedding', 'Sympathy', 'Plants', 'Cakes', 'Gifts']
 
 function ShopContent() {
   const searchParams = useSearchParams()
@@ -84,6 +85,22 @@ function ShopContent() {
               {c}
             </button>
           ))}
+          <Link
+            href="/custom-order"
+            style={{
+              padding: '8px 20px',
+              borderRadius: 50,
+              fontSize: 13,
+              fontWeight: 600,
+              border: '2px solid #EC4899',
+              background: '#fff',
+              color: '#EC4899',
+              textDecoration: 'none',
+              transition: 'all .2s',
+            }}
+          >
+            Custom Order
+          </Link>
         </div>
 
         {loading ? (

@@ -12,6 +12,9 @@ const EMPTY_FORM = { title: '', sku: '', price: '', compare_price: '', category:
 export default function AdminProducts() {
   const [products, setProducts] = useState<Product[]>([])
   const [loading, setLoading] = useState(true)
+  const [sortBy, setSortBy] = useState<'title' | 'price' | 'category' | 'stock'>('title')
+  const [sortDir, setSortDir] = useState<'asc' | 'desc'>('asc')
+  const [categoryFilter, setCategoryFilter] = useState('all')
   const [editing, setEditing] = useState<string | null>(null)
   const [editTitle, setEditTitle] = useState('')
   const [editSku, setEditSku] = useState('')
@@ -149,7 +152,9 @@ export default function AdminProducts() {
   return (
     <div>
       <div className="admin-section-header" style={{ marginBottom: 20, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-        <div className="admin-sub-text">{products.length} active products</div>
+        <div className="admin-sub-text">
+          {categoryFilter === 'all' ? products.length : products.filter(p => p.category === categoryFilter).length} of {products.length} products
+        </div>
         <button style={{ background: '#EC4899', color: '#fff', border: 'none', padding: '8px 18px', borderRadius: 10, fontSize: 13, fontWeight: 700, cursor: 'pointer' }} onClick={() => setShowAdd(!showAdd)}>
           {showAdd ? 'Cancel' : '+ Add Product'}
         </button>
@@ -230,6 +235,44 @@ export default function AdminProducts() {
         </div>
       )}
 
+      {/* Sort & Filter */}
+      <div style={{ display: 'flex', gap: 8, marginBottom: 16, flexWrap: 'wrap', alignItems: 'center' }}>
+        <div style={{ display: 'flex', gap: 4, alignItems: 'center' }}>
+          <span style={{ fontSize: 11, fontWeight: 700, color: '#9C7A8E', textTransform: 'uppercase', letterSpacing: '1px' }}>Category:</span>
+          {['all', ...CATEGORIES].map(c => (
+            <button
+              key={c}
+              onClick={() => setCategoryFilter(c)}
+              style={{
+                padding: '5px 12px', borderRadius: 8, fontSize: 11, fontWeight: 600, border: 'none', cursor: 'pointer',
+                background: categoryFilter === c ? '#EC4899' : '#FFF0F5',
+                color: categoryFilter === c ? '#fff' : '#9C7A8E',
+                textTransform: 'capitalize',
+              }}
+            >
+              {c}
+            </button>
+          ))}
+        </div>
+        <div style={{ marginLeft: 'auto', display: 'flex', gap: 4, alignItems: 'center' }}>
+          <span style={{ fontSize: 11, fontWeight: 700, color: '#9C7A8E', textTransform: 'uppercase', letterSpacing: '1px' }}>Sort:</span>
+          {(['title', 'price', 'category', 'stock'] as const).map(s => (
+            <button
+              key={s}
+              onClick={() => { if (sortBy === s) { setSortDir(d => d === 'asc' ? 'desc' : 'asc') } else { setSortBy(s); setSortDir('asc') } }}
+              style={{
+                padding: '5px 12px', borderRadius: 8, fontSize: 11, fontWeight: 600, border: 'none', cursor: 'pointer',
+                background: sortBy === s ? '#EC4899' : '#FFF0F5',
+                color: sortBy === s ? '#fff' : '#9C7A8E',
+                textTransform: 'capitalize',
+              }}
+            >
+              {s} {sortBy === s ? (sortDir === 'asc' ? '↑' : '↓') : ''}
+            </button>
+          ))}
+        </div>
+      </div>
+
       {products.length === 0 ? (
         <div className="admin-empty">No products found. Click &quot;+ Add Product&quot; to add flowers.</div>
       ) : (
@@ -246,7 +289,17 @@ export default function AdminProducts() {
               </tr>
             </thead>
             <tbody>
-              {products.map(p => (
+              {[...products]
+                .filter(p => categoryFilter === 'all' || p.category === categoryFilter)
+                .sort((a, b) => {
+                  const dir = sortDir === 'asc' ? 1 : -1
+                  if (sortBy === 'title') return dir * a.title.localeCompare(b.title)
+                  if (sortBy === 'price') return dir * (a.price - b.price)
+                  if (sortBy === 'category') return dir * a.category.localeCompare(b.category)
+                  if (sortBy === 'stock') return dir * (a.stock - b.stock)
+                  return 0
+                })
+                .map(p => (
                 <React.Fragment key={p.id}>
                 <tr>
                   <td>

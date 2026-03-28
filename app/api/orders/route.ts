@@ -3,7 +3,8 @@ import { createClient, createServiceClient } from '@/lib/supabase/server'
 import { isAdmin } from '@/lib/admin'
 import { notifyOrderAdmin } from '@/lib/notify'
 
-const DELIVERY_FEE = 0
+const DELIVERY_FEE = 5
+const FREE_DELIVERY_THRESHOLD = 50
 
 export async function GET(req: Request) {
   const { searchParams } = new URL(req.url)
@@ -138,7 +139,8 @@ export async function POST(req: Request) {
 
   // Calculate totals
   const subtotal = body.items.reduce((sum: number, item: { price: number; quantity: number }) => sum + item.price * item.quantity, 0)
-  const total = subtotal + DELIVERY_FEE
+  const deliveryFee = subtotal >= FREE_DELIVERY_THRESHOLD ? 0 : DELIVERY_FEE
+  const total = subtotal + deliveryFee
 
   // Create order
   const { data: order, error: orderErr } = await supabase
@@ -147,7 +149,7 @@ export async function POST(req: Request) {
       customer_id: customerId,
       status: 'pending',
       subtotal,
-      delivery_fee: DELIVERY_FEE,
+      delivery_fee: deliveryFee,
       total,
       sender_name: body.sender_name,
       sender_email: body.sender_email,

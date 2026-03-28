@@ -8,7 +8,8 @@ import Footer from '@/components/Footer'
 import { useAuth } from '@/lib/auth-context'
 import { useCart } from '@/lib/cart-context'
 
-const DELIVERY_FEE = 0
+const DELIVERY_FEE = 5
+const FREE_DELIVERY_THRESHOLD = 50
 const CITIES = ['Phnom Penh', 'Siem Reap', 'Battambang', 'Sihanoukville']
 
 export default function CheckoutPage() {
@@ -23,6 +24,7 @@ function CheckoutContent() {
   const router = useRouter()
   const { customer } = useAuth()
   const { items, total, clearCart } = useCart()
+  const deliveryFee = total >= FREE_DELIVERY_THRESHOLD ? 0 : DELIVERY_FEE
 
   const [senderName, setSenderName] = useState(customer?.name || '')
   const [senderEmail, setSenderEmail] = useState(customer?.email || '')
@@ -342,13 +344,22 @@ function CheckoutContent() {
                 <span>Subtotal</span>
                 <span>${total.toFixed(2)}</span>
               </div>
-              <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 12, fontSize: 14, color: '#7A5A6A' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 8, fontSize: 14, color: '#7A5A6A' }}>
                 <span>Delivery Fee</span>
-                <span>${DELIVERY_FEE.toFixed(2)}</span>
+                {deliveryFee === 0 ? (
+                  <span style={{ color: '#10B981', fontWeight: 600 }}>FREE</span>
+                ) : (
+                  <span>${deliveryFee.toFixed(2)}</span>
+                )}
               </div>
+              {deliveryFee === 0 && (
+                <div style={{ background: '#D1FAE5', color: '#065F46', fontSize: 11, fontWeight: 600, padding: '4px 10px', borderRadius: 6, marginBottom: 12, textAlign: 'center' }}>
+                  🎉 Free delivery applied!
+                </div>
+              )}
               <div style={{ borderTop: '1px solid #FFE4EF', paddingTop: 12, display: 'flex', justifyContent: 'space-between' }}>
                 <span style={{ fontSize: 17, fontWeight: 700, color: '#4A3040' }}>Total</span>
-                <span style={{ fontSize: 17, fontWeight: 700, color: '#DB2777' }}>${(total + DELIVERY_FEE).toFixed(2)}</span>
+                <span style={{ fontSize: 17, fontWeight: 700, color: '#DB2777' }}>${(total + deliveryFee).toFixed(2)}</span>
               </div>
             </div>
 

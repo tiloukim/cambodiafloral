@@ -47,6 +47,19 @@ function SuccessContent() {
               Order ID: <strong>{orderId.slice(0, 8)}</strong>
             </p>
           )}
+          <div style={{
+            background: '#FFF8FC',
+            border: '1px solid #FFE4EF',
+            borderRadius: 12,
+            padding: '14px 20px',
+            marginBottom: 32,
+            fontSize: 12,
+            color: '#9C7A8E',
+            lineHeight: 1.7,
+          }}>
+            <p>📋 The charge on your credit card statement will appear as a charge from <strong style={{ color: '#4A3040' }}>Kimco LLC</strong>.</p>
+            <p style={{ marginTop: 4 }}>Cambodia Floral is managed by Kimco LLC.</p>
+          </div>
           <div style={{ display: 'flex', gap: 12, justifyContent: 'center', flexWrap: 'wrap' }}>
             {orderId && (
               <Link href={`/track?order=${orderId}`} style={{

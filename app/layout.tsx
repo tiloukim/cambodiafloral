@@ -4,6 +4,7 @@ import { AuthProvider } from '@/lib/auth-context'
 import { CartProvider } from '@/lib/cart-context'
 import AdminAddButton from '@/components/AdminAddButton'
 import ChatWidget from '@/components/ChatWidget'
+import TelegramButton from '@/components/TelegramButton'
 import './globals.css'
 
 const dmSans = DM_Sans({
@@ -32,6 +33,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           <CartProvider>
             {children}
             <AdminAddButton />
+            <TelegramButton />
             <ChatWidget />
           </CartProvider>
         </AuthProvider>

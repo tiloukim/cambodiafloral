@@ -4,7 +4,7 @@ import { isAdmin } from '@/lib/admin'
 import { notifyOrderAdmin } from '@/lib/notify'
 
 const DELIVERY_FEE = 5
-const FREE_DELIVERY_THRESHOLD = 50
+const FREE_DELIVERY_THRESHOLD = 100
 
 export async function GET(req: Request) {
   const { searchParams } = new URL(req.url)

@@ -6,7 +6,7 @@ import Footer from '@/components/Footer'
 import { useCart } from '@/lib/cart-context'
 
 const DELIVERY_FEE = 5
-const FREE_DELIVERY_THRESHOLD = 50
+const FREE_DELIVERY_THRESHOLD = 100
 
 export default function CartPage() {
   const { items, updateQty, removeItem, total } = useCart()

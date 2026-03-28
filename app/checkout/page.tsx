@@ -9,7 +9,7 @@ import { useAuth } from '@/lib/auth-context'
 import { useCart } from '@/lib/cart-context'
 
 const DELIVERY_FEE = 5
-const FREE_DELIVERY_THRESHOLD = 50
+const FREE_DELIVERY_THRESHOLD = 100
 const CITIES = ['Phnom Penh', 'Siem Reap', 'Battambang', 'Sihanoukville']
 
 export default function CheckoutPage() {

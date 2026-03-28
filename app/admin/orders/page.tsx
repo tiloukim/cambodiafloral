@@ -119,6 +119,7 @@ export default function AdminOrders() {
                   <td>
                     <div style={{ fontWeight: 600 }}>{o.sender_name}</div>
                     <div className="admin-sub-text">{o.sender_email}</div>
+                    {o.sender_phone && <div className="admin-sub-text">📞 {o.sender_phone}</div>}
                   </td>
                   <td>
                     {o.items?.map((item, i) => (
@@ -127,10 +128,27 @@ export default function AdminOrders() {
                         {item.title} x{item.quantity}
                       </div>
                     ))}
+                    {o.card_message && (
+                      <div style={{ fontSize: 11, color: '#9C7A8E', marginTop: 4, fontStyle: 'italic', background: '#FFF5F9', padding: '4px 8px', borderRadius: 6 }}>
+                        💌 &quot;{o.card_message}&quot;
+                      </div>
+                    )}
                   </td>
                   <td>
                     <div style={{ fontWeight: 600 }}>{o.recipient_name}</div>
+                    <div className="admin-sub-text">📞 {o.recipient_phone}</div>
+                    <div className="admin-sub-text">📍 {o.recipient_address}</div>
                     <div className="admin-sub-text">{o.recipient_city}</div>
+                    {o.delivery_date && (
+                      <div style={{ fontSize: 11, color: '#EC4899', fontWeight: 600, marginTop: 4 }}>
+                        📅 {o.delivery_date}{o.delivery_time ? ` @ ${o.delivery_time}` : ''}
+                      </div>
+                    )}
+                    {o.delivery_notes && (
+                      <div style={{ fontSize: 11, color: '#9C7A8E', marginTop: 2 }}>
+                        📝 {o.delivery_notes}
+                      </div>
+                    )}
                   </td>
                   <td style={{ fontWeight: 700, color: '#10B981' }}>${o.total.toFixed(2)}</td>
                   <td><OrderStatusBadge status={o.status} /></td>

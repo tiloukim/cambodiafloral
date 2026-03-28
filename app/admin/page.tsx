@@ -4,9 +4,22 @@ import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import OrderStatusBadge from '@/components/OrderStatusBadge'
 
+interface PeriodProfit {
+  revenue: number
+  cost: number
+  profit: number
+}
+
 interface Stats {
   totalRevenue: number
   todayRevenue: number
+  monthRevenue: number
+  yearRevenue: number
+  totalCost: number
+  totalProfit: number
+  todayProfit: PeriodProfit
+  monthProfit: PeriodProfit
+  yearProfit: PeriodProfit
   totalOrders: number
   pendingOrders: number
   confirmedOrders: number
@@ -40,10 +53,12 @@ export default function AdminDashboard() {
 
   const cards = [
     { label: 'Total Orders', value: stats.totalOrders.toString(), color: '#EC4899' },
-    { label: 'Revenue', value: `$${stats.totalRevenue.toFixed(2)}`, color: '#10B981' },
+    { label: 'Total Revenue', value: `$${stats.totalRevenue.toFixed(2)}`, color: '#10B981' },
+    { label: 'Total Profit', value: `$${stats.totalProfit.toFixed(2)}`, color: stats.totalProfit >= 0 ? '#10B981' : '#EF4444' },
     { label: 'Pending Orders', value: stats.pendingOrders.toString(), color: '#F59E0B' },
-    { label: "Today's Revenue", value: `$${stats.todayRevenue.toFixed(2)}`, color: '#6366F1' },
   ]
+
+  const profitMargin = stats.totalRevenue > 0 ? ((stats.totalProfit / stats.totalRevenue) * 100).toFixed(1) : '0'
 
   return (
     <div>
@@ -69,6 +84,103 @@ export default function AdminDashboard() {
             </div>
           </div>
         ))}
+      </div>
+
+      {/* Earnings Report */}
+      <div style={{ marginBottom: 32 }}>
+        <h3 style={{ fontSize: 16, fontWeight: 700, color: '#4A3040', marginBottom: 16 }}>💰 Earnings Report</h3>
+        <div style={{
+          display: 'grid',
+          gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))',
+          gap: 16,
+        }}>
+          {/* Today */}
+          <div style={{ background: '#fff', borderRadius: 14, border: '1px solid #FFE4EF', padding: 20 }}>
+            <div style={{ fontSize: 12, fontWeight: 700, color: '#9C7A8E', textTransform: 'uppercase', letterSpacing: '1px', marginBottom: 12 }}>Today</div>
+            <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 8 }}>
+              <span style={{ fontSize: 13, color: '#7A5A6A' }}>Revenue</span>
+              <span style={{ fontSize: 13, fontWeight: 700, color: '#4A3040' }}>${stats.todayProfit.revenue.toFixed(2)}</span>
+            </div>
+            <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 8 }}>
+              <span style={{ fontSize: 13, color: '#7A5A6A' }}>Cost</span>
+              <span style={{ fontSize: 13, fontWeight: 600, color: '#EF4444' }}>-${stats.todayProfit.cost.toFixed(2)}</span>
+            </div>
+            <div style={{ borderTop: '1px solid #FFE4EF', paddingTop: 8, display: 'flex', justifyContent: 'space-between' }}>
+              <span style={{ fontSize: 14, fontWeight: 700, color: '#4A3040' }}>Profit</span>
+              <span style={{ fontSize: 18, fontWeight: 800, color: stats.todayProfit.profit >= 0 ? '#10B981' : '#EF4444' }}>
+                ${stats.todayProfit.profit.toFixed(2)}
+              </span>
+            </div>
+          </div>
+
+          {/* This Month */}
+          <div style={{ background: '#fff', borderRadius: 14, border: '1px solid #FFE4EF', padding: 20 }}>
+            <div style={{ fontSize: 12, fontWeight: 700, color: '#9C7A8E', textTransform: 'uppercase', letterSpacing: '1px', marginBottom: 12 }}>This Month</div>
+            <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 8 }}>
+              <span style={{ fontSize: 13, color: '#7A5A6A' }}>Revenue</span>
+              <span style={{ fontSize: 13, fontWeight: 700, color: '#4A3040' }}>${stats.monthProfit.revenue.toFixed(2)}</span>
+            </div>
+            <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 8 }}>
+              <span style={{ fontSize: 13, color: '#7A5A6A' }}>Cost</span>
+              <span style={{ fontSize: 13, fontWeight: 600, color: '#EF4444' }}>-${stats.monthProfit.cost.toFixed(2)}</span>
+            </div>
+            <div style={{ borderTop: '1px solid #FFE4EF', paddingTop: 8, display: 'flex', justifyContent: 'space-between' }}>
+              <span style={{ fontSize: 14, fontWeight: 700, color: '#4A3040' }}>Profit</span>
+              <span style={{ fontSize: 18, fontWeight: 800, color: stats.monthProfit.profit >= 0 ? '#10B981' : '#EF4444' }}>
+                ${stats.monthProfit.profit.toFixed(2)}
+              </span>
+            </div>
+          </div>
+
+          {/* This Year */}
+          <div style={{ background: '#fff', borderRadius: 14, border: '1px solid #FFE4EF', padding: 20 }}>
+            <div style={{ fontSize: 12, fontWeight: 700, color: '#9C7A8E', textTransform: 'uppercase', letterSpacing: '1px', marginBottom: 12 }}>This Year</div>
+            <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 8 }}>
+              <span style={{ fontSize: 13, color: '#7A5A6A' }}>Revenue</span>
+              <span style={{ fontSize: 13, fontWeight: 700, color: '#4A3040' }}>${stats.yearProfit.revenue.toFixed(2)}</span>
+            </div>
+            <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 8 }}>
+              <span style={{ fontSize: 13, color: '#7A5A6A' }}>Cost</span>
+              <span style={{ fontSize: 13, fontWeight: 600, color: '#EF4444' }}>-${stats.yearProfit.cost.toFixed(2)}</span>
+            </div>
+            <div style={{ borderTop: '1px solid #FFE4EF', paddingTop: 8, display: 'flex', justifyContent: 'space-between' }}>
+              <span style={{ fontSize: 14, fontWeight: 700, color: '#4A3040' }}>Profit</span>
+              <span style={{ fontSize: 18, fontWeight: 800, color: stats.yearProfit.profit >= 0 ? '#10B981' : '#EF4444' }}>
+                ${stats.yearProfit.profit.toFixed(2)}
+              </span>
+            </div>
+          </div>
+        </div>
+
+        {/* Overall Summary Bar */}
+        <div style={{
+          marginTop: 16,
+          background: 'linear-gradient(135deg, #FDF2F8, #FCE7F3)',
+          borderRadius: 14,
+          border: '1px solid #FFE4EF',
+          padding: 20,
+          display: 'flex',
+          justifyContent: 'space-around',
+          flexWrap: 'wrap',
+          gap: 16,
+        }}>
+          <div style={{ textAlign: 'center' }}>
+            <div style={{ fontSize: 11, fontWeight: 700, color: '#9C7A8E', textTransform: 'uppercase', letterSpacing: '1px' }}>All-Time Revenue</div>
+            <div style={{ fontSize: 22, fontWeight: 800, color: '#4A3040', marginTop: 4 }}>${stats.totalRevenue.toFixed(2)}</div>
+          </div>
+          <div style={{ textAlign: 'center' }}>
+            <div style={{ fontSize: 11, fontWeight: 700, color: '#9C7A8E', textTransform: 'uppercase', letterSpacing: '1px' }}>All-Time Cost</div>
+            <div style={{ fontSize: 22, fontWeight: 800, color: '#EF4444', marginTop: 4 }}>${stats.totalCost.toFixed(2)}</div>
+          </div>
+          <div style={{ textAlign: 'center' }}>
+            <div style={{ fontSize: 11, fontWeight: 700, color: '#9C7A8E', textTransform: 'uppercase', letterSpacing: '1px' }}>All-Time Profit</div>
+            <div style={{ fontSize: 22, fontWeight: 800, color: '#10B981', marginTop: 4 }}>${stats.totalProfit.toFixed(2)}</div>
+          </div>
+          <div style={{ textAlign: 'center' }}>
+            <div style={{ fontSize: 11, fontWeight: 700, color: '#9C7A8E', textTransform: 'uppercase', letterSpacing: '1px' }}>Profit Margin</div>
+            <div style={{ fontSize: 22, fontWeight: 800, color: '#6366F1', marginTop: 4 }}>{profitMargin}%</div>
+          </div>
+        </div>
       </div>
 
       {/* Quick Stats */}

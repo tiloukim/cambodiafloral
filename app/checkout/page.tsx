@@ -8,7 +8,7 @@ import Footer from '@/components/Footer'
 import { useAuth } from '@/lib/auth-context'
 import { useCart } from '@/lib/cart-context'
 
-const DELIVERY_FEE = 5
+const DELIVERY_FEE = 0
 const CITIES = ['Phnom Penh', 'Siem Reap', 'Battambang', 'Sihanoukville']
 
 export default function CheckoutPage() {

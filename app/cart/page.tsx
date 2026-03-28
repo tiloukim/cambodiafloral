@@ -5,7 +5,7 @@ import Navbar from '@/components/Navbar'
 import Footer from '@/components/Footer'
 import { useCart } from '@/lib/cart-context'
 
-const DELIVERY_FEE = 5
+const DELIVERY_FEE = 0
 
 export default function CartPage() {
   const { items, updateQty, removeItem, total } = useCart()

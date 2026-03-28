@@ -3,7 +3,7 @@ import { createClient, createServiceClient } from '@/lib/supabase/server'
 import { isAdmin } from '@/lib/admin'
 import { notifyOrderAdmin } from '@/lib/notify'
 
-const DELIVERY_FEE = 5
+const DELIVERY_FEE = 0
 
 export async function GET(req: Request) {
   const { searchParams } = new URL(req.url)

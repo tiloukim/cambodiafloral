@@ -2,7 +2,7 @@ import { NextResponse } from 'next/server'
 import { createClient, createServiceClient } from '@/lib/supabase/server'
 import { notifyOrderAdmin } from '@/lib/notify'
 
-const DELIVERY_FEE = 5
+const DELIVERY_FEE = 0
 
 export async function POST(req: Request) {
   const body = await req.json()

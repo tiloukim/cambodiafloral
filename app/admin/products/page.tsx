@@ -7,7 +7,7 @@ const CATEGORIES = ['bouquets', 'arrangements', 'baskets', 'wedding', 'sympathy'
 const OCCASIONS = ['Birthday', 'Anniversary', "Valentine's", 'Congratulations', 'Get Well', 'Sympathy']
 const BADGES = ['NEW', 'BEST', 'POPULAR', 'SALE', 'LIMITED']
 
-const EMPTY_FORM = { title: '', sku: '', price: '', compare_price: '', category: 'bouquets', occasion: '', description: '', stock: '10', badge: '' }
+const EMPTY_FORM = { title: '', sku: '', cost: '', price: '', compare_price: '', category: 'bouquets', occasion: '', description: '', stock: '10', badge: '' }
 
 export default function AdminProducts() {
   const [products, setProducts] = useState<Product[]>([])
@@ -19,6 +19,7 @@ export default function AdminProducts() {
   const [editTitle, setEditTitle] = useState('')
   const [editSku, setEditSku] = useState('')
   const [editStock, setEditStock] = useState('')
+  const [editCost, setEditCost] = useState('')
   const [editPrice, setEditPrice] = useState('')
   const [editCategory, setEditCategory] = useState('')
   const [editImages, setEditImages] = useState<string[]>([])
@@ -118,6 +119,7 @@ export default function AdminProducts() {
         body: JSON.stringify({
           title: addForm.title,
           sku: addForm.sku || null,
+          cost: addForm.cost ? parseFloat(addForm.cost) : 0,
           price: parseFloat(addForm.price),
           compare_price: addForm.compare_price ? parseFloat(addForm.compare_price) : null,
           category: addForm.category,
@@ -173,7 +175,11 @@ export default function AdminProducts() {
               <input value={addForm.sku} onChange={e => setAddForm({ ...addForm, sku: e.target.value })} style={inputStyle} placeholder="CF-001" />
             </div>
             <div>
-              <label style={labelStyle}>Price *</label>
+              <label style={labelStyle}>Cost (Buy Price)</label>
+              <input type="number" step="0.01" value={addForm.cost} onChange={e => setAddForm({ ...addForm, cost: e.target.value })} style={inputStyle} placeholder="15.00" />
+            </div>
+            <div>
+              <label style={labelStyle}>Sell Price *</label>
               <input type="number" step="0.01" value={addForm.price} onChange={e => setAddForm({ ...addForm, price: e.target.value })} style={inputStyle} placeholder="29.99" />
             </div>
             <div>
@@ -281,7 +287,10 @@ export default function AdminProducts() {
             <thead>
               <tr>
                 <th>Product</th>
-                <th>Price</th>
+                <th>Cost</th>
+                <th>Sell Price</th>
+                <th>Profit</th>
+                <th>Markup</th>
                 <th>Category</th>
                 <th>Stock</th>
                 <th>Badge</th>
@@ -324,13 +333,30 @@ export default function AdminProducts() {
                   </td>
                   <td>
                     {editing === p.id ? (
-                      <input type="number" value={editPrice} onChange={e => setEditPrice(e.target.value)} style={{ width: 80, padding: '4px 8px', border: '1px solid #FFD6E8', borderRadius: 6, fontSize: 13 }} />
+                      <input type="number" step="0.01" value={editCost} onChange={e => setEditCost(e.target.value)} placeholder="0" style={{ width: 70, padding: '4px 8px', border: '1px solid #FFD6E8', borderRadius: 6, fontSize: 13 }} />
+                    ) : (
+                      <span style={{ color: '#9C7A8E' }}>${(p.cost || 0).toFixed(2)}</span>
+                    )}
+                  </td>
+                  <td>
+                    {editing === p.id ? (
+                      <input type="number" step="0.01" value={editPrice} onChange={e => setEditPrice(e.target.value)} style={{ width: 70, padding: '4px 8px', border: '1px solid #FFD6E8', borderRadius: 6, fontSize: 13 }} />
                     ) : (
                       <div>
                         <strong>${p.price.toFixed(2)}</strong>
                         {p.compare_price && <div className="admin-sub-text" style={{ textDecoration: 'line-through' }}>${p.compare_price.toFixed(2)}</div>}
                       </div>
                     )}
+                  </td>
+                  <td>
+                    <span style={{ color: (p.price - (p.cost || 0)) > 0 ? '#10B981' : '#EF4444', fontWeight: 700 }}>
+                      ${(p.price - (p.cost || 0)).toFixed(2)}
+                    </span>
+                  </td>
+                  <td>
+                    <span style={{ background: '#FFF0F5', color: '#EC4899', fontSize: 11, fontWeight: 700, padding: '3px 8px', borderRadius: 6 }}>
+                      {(p.cost || 0) > 0 ? Math.round(((p.price - p.cost) / p.cost) * 100) + '%' : '—'}
+                    </span>
                   </td>
                   <td>
                     {editing === p.id ? (
@@ -360,12 +386,12 @@ export default function AdminProducts() {
                   <td>
                     {editing === p.id ? (
                       <div style={{ display: 'flex', gap: 6 }}>
-                        <button onClick={() => updateProduct(p.id, { title: editTitle, sku: editSku || null, price: parseFloat(editPrice), stock: parseInt(editStock), category: editCategory, image_urls: editImages, image_url: editImages[0] || p.image_url })} style={{ padding: '4px 10px', fontSize: 12, fontWeight: 600, background: '#10B981', color: '#fff', border: 'none', borderRadius: 6, cursor: 'pointer' }}>Save</button>
+                        <button onClick={() => updateProduct(p.id, { title: editTitle, sku: editSku || null, cost: parseFloat(editCost) || 0, price: parseFloat(editPrice), stock: parseInt(editStock), category: editCategory, image_urls: editImages, image_url: editImages[0] || p.image_url })} style={{ padding: '4px 10px', fontSize: 12, fontWeight: 600, background: '#10B981', color: '#fff', border: 'none', borderRadius: 6, cursor: 'pointer' }}>Save</button>
                         <button onClick={() => setEditing(null)} style={{ padding: '4px 10px', fontSize: 12, fontWeight: 600, background: '#F3F4F6', color: '#666', border: 'none', borderRadius: 6, cursor: 'pointer' }}>Cancel</button>
                       </div>
                     ) : (
                       <div style={{ display: 'flex', gap: 6 }}>
-                        <button onClick={() => { setEditing(p.id); setEditTitle(p.title); setEditSku(p.sku || ''); setEditPrice(p.price.toString()); setEditStock(p.stock.toString()); setEditCategory(p.category); setEditImages(p.image_urls?.length > 0 ? [...p.image_urls] : [p.image_url]) }} style={{ padding: '4px 10px', fontSize: 12, fontWeight: 600, background: '#EC4899', color: '#fff', border: 'none', borderRadius: 6, cursor: 'pointer' }}>Edit</button>
+                        <button onClick={() => { setEditing(p.id); setEditTitle(p.title); setEditSku(p.sku || ''); setEditCost((p.cost || 0).toString()); setEditPrice(p.price.toString()); setEditStock(p.stock.toString()); setEditCategory(p.category); setEditImages(p.image_urls?.length > 0 ? [...p.image_urls] : [p.image_url]) }} style={{ padding: '4px 10px', fontSize: 12, fontWeight: 600, background: '#EC4899', color: '#fff', border: 'none', borderRadius: 6, cursor: 'pointer' }}>Edit</button>
                         <button onClick={() => deleteProduct(p.id)} style={{ padding: '4px 10px', fontSize: 12, fontWeight: 600, background: '#EF4444', color: '#fff', border: 'none', borderRadius: 6, cursor: 'pointer' }}>Remove</button>
                       </div>
                     )}
@@ -373,7 +399,7 @@ export default function AdminProducts() {
                 </tr>
                 {editing === p.id && (
                   <tr>
-                    <td colSpan={6} style={{ padding: '12px 16px', background: '#FFF8FC' }}>
+                    <td colSpan={9} style={{ padding: '12px 16px', background: '#FFF8FC' }}>
                       <label style={labelStyle}>Images ({editImages.length})</label>
                       <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginBottom: 10 }}>
                         {/* eslint-disable-next-line @next/next/no-img-element */}

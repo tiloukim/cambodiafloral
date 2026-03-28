@@ -2,6 +2,7 @@ export interface Product {
   id: string
   sku: string | null
   title: string
+  cost: number
   price: number
   compare_price: number | null
   category: string

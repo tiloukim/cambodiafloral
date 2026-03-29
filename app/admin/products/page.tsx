@@ -26,6 +26,7 @@ export default function AdminProducts() {
   const [sortBy, setSortBy] = useState<'title' | 'price' | 'category' | 'stock'>('title')
   const [sortDir, setSortDir] = useState<'asc' | 'desc'>('asc')
   const [categoryFilter, setCategoryFilter] = useState('all')
+  const [search, setSearch] = useState('')
   const [editing, setEditing] = useState<string | null>(null)
   const [editTitle, setEditTitle] = useState('')
   const [editSku, setEditSku] = useState('')
@@ -173,6 +174,16 @@ export default function AdminProducts() {
 
   return (
     <div>
+      {/* Search bar */}
+      <div style={{ marginBottom: 16 }}>
+        <input
+          value={search}
+          onChange={e => setSearch(e.target.value)}
+          placeholder="Search products by name, SKU, or category..."
+          style={{ width: '100%', padding: '12px 16px', border: '2px solid #FFD6E8', borderRadius: 12, fontSize: 14, fontFamily: 'var(--font-dm-sans), sans-serif', boxSizing: 'border-box', background: '#fff' }}
+        />
+      </div>
+
       <div className="admin-section-header" style={{ marginBottom: 20, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
         <div className="admin-sub-text">
           {categoryFilter === 'all' ? products.length : products.filter(p => p.category === categoryFilter).length} of {products.length} products
@@ -319,7 +330,16 @@ export default function AdminProducts() {
             </thead>
             <tbody>
               {[...products]
-                .filter(p => categoryFilter === 'all' || p.category === categoryFilter)
+                .filter(p => {
+                  if (categoryFilter !== 'all' && p.category !== categoryFilter) return false
+                  if (search) {
+                    const q = search.toLowerCase()
+                    return p.title.toLowerCase().includes(q) ||
+                      (p.sku && p.sku.toLowerCase().includes(q)) ||
+                      p.category.toLowerCase().includes(q)
+                  }
+                  return true
+                })
                 .sort((a, b) => {
                   const dir = sortDir === 'asc' ? 1 : -1
                   if (sortBy === 'title') return dir * a.title.localeCompare(b.title)

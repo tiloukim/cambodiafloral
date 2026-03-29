@@ -37,23 +37,30 @@ const CATEGORY_PREFIXES: Record<string, string> = {
 }
 
 async function generateSku(supabase: ReturnType<typeof createServiceClient>, category: string): Promise<string> {
-  const prefix = CATEGORY_PREFIXES[category] || 'CF'
+  const prefix = CATEGORY_PREFIXES[category] || 'GN'
 
   // Find the highest existing SKU number for this category prefix
+  // Support both old format (CF-XX-NNN) and new format (XX-NNN)
   const { data: existing } = await supabase
     .from('cf_products')
     .select('sku')
-    .like('sku', `CF-${prefix}-%`)
+    .or(`sku.like.${prefix}-%,sku.like.CF-${prefix}-%`)
     .order('sku', { ascending: false })
-    .limit(1)
+    .limit(10)
 
-  let nextNum = 1
-  if (existing && existing.length > 0 && existing[0].sku) {
-    const match = existing[0].sku.match(/CF-[A-Z]{2}-(\d+)/)
-    if (match) nextNum = parseInt(match[1]) + 1
+  let maxNum = 0
+  if (existing) {
+    for (const row of existing) {
+      if (!row.sku) continue
+      const match = row.sku.match(/(?:CF-)?[A-Z]{2,3}-(\d+)/)
+      if (match) {
+        const num = parseInt(match[1])
+        if (num > maxNum) maxNum = num
+      }
+    }
   }
 
-  return `CF-${prefix}-${String(nextNum).padStart(3, '0')}`
+  return `${prefix}-${String(maxNum + 1).padStart(3, '0')}`
 }
 
 export async function POST(req: Request) {

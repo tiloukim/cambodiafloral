@@ -9,6 +9,17 @@ const BADGES = ['NEW', 'BEST', 'POPULAR', 'SALE', 'LIMITED']
 
 const EMPTY_FORM = { title: '', sku: '', cost: '', price: '', compare_price: '', category: 'bouquets', occasion: '', description: '', stock: '10', badge: '' }
 
+async function fetchNextSku(category: string): Promise<string> {
+  try {
+    const res = await fetch(`/api/products?next_sku=${category}`)
+    if (res.ok) {
+      const data = await res.json()
+      return data.sku || ''
+    }
+  } catch {}
+  return ''
+}
+
 export default function AdminProducts() {
   const [products, setProducts] = useState<Product[]>([])
   const [loading, setLoading] = useState(true)
@@ -42,6 +53,15 @@ export default function AdminProducts() {
   }, [])
 
   useEffect(() => { fetchProducts() }, [fetchProducts])
+
+  // Auto-generate SKU when add form opens or category changes
+  useEffect(() => {
+    if (showAdd) {
+      fetchNextSku(addForm.category).then(sku => {
+        if (sku) setAddForm(prev => ({ ...prev, sku }))
+      })
+    }
+  }, [showAdd, addForm.category])
 
   const updateProduct = async (id: string, updates: Record<string, unknown>) => {
     try {
@@ -171,8 +191,8 @@ export default function AdminProducts() {
               <input value={addForm.title} onChange={e => setAddForm({ ...addForm, title: e.target.value })} style={inputStyle} placeholder="Pink Rose Bouquet" />
             </div>
             <div>
-              <label style={labelStyle}>Product Code (SKU)</label>
-              <input value={addForm.sku} onChange={e => setAddForm({ ...addForm, sku: e.target.value })} style={inputStyle} placeholder="CF-001" />
+              <label style={labelStyle}>Product Code (SKU) — Auto</label>
+              <input value={addForm.sku} readOnly style={{ ...inputStyle, background: '#FFF5F9', color: '#9C7A8E', fontFamily: 'monospace', fontWeight: 700 }} />
             </div>
             <div>
               <label style={labelStyle}>Cost (Buy Price)</label>

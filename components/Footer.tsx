@@ -38,12 +38,11 @@ export default function Footer() {
           </div>
         </div>
         <div className="footer-col">
-          <h4 style={{ fontSize: 13, fontWeight: 700, color: '#F9A8D4', marginBottom: 12, textTransform: 'uppercase', letterSpacing: '1px' }}>Delivery Areas</h4>
+          <h4 style={{ fontSize: 13, fontWeight: 700, color: '#F9A8D4', marginBottom: 12, textTransform: 'uppercase', letterSpacing: '1px' }}>Delivery</h4>
           <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-            <span style={{ fontSize: 13 }}>Phnom Penh</span>
-            <span style={{ fontSize: 13 }}>Siem Reap</span>
-            <span style={{ fontSize: 13 }}>Battambang</span>
-            <span style={{ fontSize: 13 }}>Sihanoukville</span>
+            <Link href="/phnom-penh-flower-delivery" style={{ fontSize: 13, color: '#C9A0B4', textDecoration: 'none' }}>Phnom Penh Delivery</Link>
+            <Link href="/send-flowers-to-cambodia" style={{ fontSize: 13, color: '#C9A0B4', textDecoration: 'none' }}>Send from Abroad</Link>
+            <span style={{ fontSize: 12, color: '#9C7A8E', fontStyle: 'italic' }}>Other provinces coming soon</span>
           </div>
         </div>
       </div>

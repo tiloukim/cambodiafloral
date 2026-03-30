@@ -35,6 +35,8 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   return [
     { url: 'https://cambodiafloral.com', lastModified: new Date(), changeFrequency: 'daily', priority: 1.0 },
     { url: 'https://cambodiafloral.com/shop', lastModified: new Date(), changeFrequency: 'daily', priority: 0.9 },
+    { url: 'https://cambodiafloral.com/send-flowers-to-cambodia', lastModified: new Date(), changeFrequency: 'weekly', priority: 0.9 },
+    { url: 'https://cambodiafloral.com/phnom-penh-flower-delivery', lastModified: new Date(), changeFrequency: 'weekly', priority: 0.9 },
     { url: 'https://cambodiafloral.com/about', lastModified: new Date(), changeFrequency: 'monthly', priority: 0.5 },
     { url: 'https://cambodiafloral.com/contact', lastModified: new Date(), changeFrequency: 'monthly', priority: 0.5 },
     { url: 'https://cambodiafloral.com/privacy', lastModified: new Date(), changeFrequency: 'yearly', priority: 0.3 },

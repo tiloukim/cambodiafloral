@@ -24,7 +24,7 @@ export const metadata: Metadata = {
     default: 'Cambodia Floral - Send Flowers to Cambodia | Flower Delivery Phnom Penh',
     template: '%s | Cambodia Floral',
   },
-  description: 'Send beautiful flowers to your loved ones in Cambodia. Fresh bouquets, roses, arrangements, cakes, and gift baskets delivered same-day across Phnom Penh, Siem Reap, Battambang, and Sihanoukville. Order online today!',
+  description: 'Send beautiful flowers to your loved ones in Phnom Penh, Cambodia. Fresh bouquets, roses, arrangements, cakes, and gift baskets delivered same-day. Other provinces coming soon! Order online today!',
   keywords: [
     'flowers cambodia', 'send flowers to cambodia', 'flower delivery cambodia',
     'phnom penh florist', 'cambodia bouquet', 'roses cambodia', 'flower shop phnom penh',
@@ -37,7 +37,7 @@ export const metadata: Metadata = {
   alternates: { canonical: '/' },
   openGraph: {
     title: 'Cambodia Floral - Send Flowers to Cambodia',
-    description: 'Fresh bouquets, roses, arrangements, cakes & gift baskets delivered same-day across Cambodia. Order online!',
+    description: 'Fresh bouquets, roses, arrangements, cakes & gift baskets delivered same-day in Phnom Penh. Order online!',
     url: 'https://cambodiafloral.com',
     siteName: 'Cambodia Floral',
     locale: 'en_US',
@@ -47,7 +47,7 @@ export const metadata: Metadata = {
   twitter: {
     card: 'summary_large_image',
     title: 'Cambodia Floral - Send Flowers to Cambodia',
-    description: 'Fresh bouquets, roses, cakes & gift baskets delivered same-day across Cambodia.',
+    description: 'Fresh bouquets, roses, cakes & gift baskets delivered same-day in Phnom Penh.',
     images: ['/og-image.png'],
   },
   robots: { index: true, follow: true, googleBot: { index: true, follow: true, 'max-image-preview': 'large' } },
@@ -67,7 +67,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
               name: 'Cambodia Floral',
               url: 'https://cambodiafloral.com',
               logo: 'https://cambodiafloral.com/logo.png',
-              description: 'Send beautiful flowers, bouquets, cakes and gift baskets to Cambodia. Same-day delivery across Phnom Penh, Siem Reap, Battambang, and Sihanoukville.',
+              description: 'Send beautiful flowers, bouquets, cakes and gift baskets in Phnom Penh, Cambodia. Same-day delivery available. Other provinces coming soon.',
               address: {
                 '@type': 'PostalAddress',
                 addressLocality: 'Phnom Penh',
@@ -75,9 +75,6 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
               },
               areaServed: [
                 { '@type': 'City', name: 'Phnom Penh' },
-                { '@type': 'City', name: 'Siem Reap' },
-                { '@type': 'City', name: 'Battambang' },
-                { '@type': 'City', name: 'Sihanoukville' },
               ],
               priceRange: '$45 - $250',
               openingHoursSpecification: {

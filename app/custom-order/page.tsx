@@ -61,7 +61,7 @@ const BUDGET_RANGES = [
   'Not sure - need consultation',
 ]
 
-const CITIES = ['Phnom Penh', 'Siem Reap', 'Battambang', 'Sihanoukville', 'Other']
+const CITIES = ['Phnom Penh']
 
 export default function CustomOrderPage() {
   const [submitting, setSubmitting] = useState(false)

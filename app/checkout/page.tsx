@@ -10,7 +10,7 @@ import { useCart } from '@/lib/cart-context'
 
 const DELIVERY_FEE = 5
 const FREE_DELIVERY_THRESHOLD = 100
-const CITIES = ['Phnom Penh', 'Siem Reap', 'Battambang', 'Sihanoukville']
+const CITIES = ['Phnom Penh']
 
 export default function CheckoutPage() {
   return (

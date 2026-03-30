@@ -58,7 +58,7 @@ export default function AboutPage() {
             Our Mission
           </h2>
           <p style={{ fontSize: 15, color: '#7A5A6A', lineHeight: 1.8, marginBottom: 20 }}>
-            We believe every occasion deserves to be celebrated, every loved one deserves to feel special, and distance should never stand in the way. Whether it&apos;s a birthday in Phnom Penh, an anniversary in Siem Reap, or a heartfelt &ldquo;thinking of you&rdquo; in Battambang &mdash; we make it happen.
+            We believe every occasion deserves to be celebrated, every loved one deserves to feel special, and distance should never stand in the way. Whether it&apos;s a birthday, an anniversary, or a heartfelt &ldquo;thinking of you&rdquo; &mdash; we make it happen with same-day delivery in Phnom Penh. Other provinces coming soon!
           </p>
 
           <h2 style={{
@@ -104,7 +104,7 @@ export default function AboutPage() {
             Delivery Areas
           </h2>
           <p style={{ fontSize: 15, color: '#7A5A6A', lineHeight: 1.8, marginBottom: 28 }}>
-            We currently deliver to Phnom Penh, Siem Reap, Battambang, and Sihanoukville, with plans to expand across all provinces of Cambodia.
+            We currently deliver to Phnom Penh with same-day delivery available for orders placed before 2PM. We are expanding to Siem Reap, Battambang, Sihanoukville, and other provinces soon!
           </p>
 
           <div style={{ textAlign: 'center' }}>

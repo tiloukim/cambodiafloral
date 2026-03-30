@@ -59,7 +59,7 @@ export default function Home() {
             marginBottom: 36,
             lineHeight: 1.6,
           }}>
-            Surprise your loved ones with fresh, hand-crafted bouquets delivered anywhere in Cambodia. From Phnom Penh to Siem Reap, we bring joy to every doorstep.
+            Surprise your loved ones with fresh, hand-crafted bouquets delivered in Phnom Penh. Same-day delivery available — other provinces coming soon!
           </p>
           <Link href="/shop" style={{
             display: 'inline-block',

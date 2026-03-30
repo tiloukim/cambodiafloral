@@ -20,14 +20,77 @@ const playfair = Playfair_Display({
 })
 
 export const metadata: Metadata = {
-  title: 'Cambodia Floral - Send Flowers to Cambodia',
-  description: 'Send beautiful flowers to your loved ones in Cambodia. Fresh bouquets, arrangements, and gift baskets delivered across Phnom Penh, Siem Reap, Battambang, and Sihanoukville.',
-  keywords: ['flowers cambodia', 'send flowers to cambodia', 'flower delivery cambodia', 'phnom penh florist', 'cambodia bouquet'],
+  title: {
+    default: 'Cambodia Floral - Send Flowers to Cambodia | Flower Delivery Phnom Penh',
+    template: '%s | Cambodia Floral',
+  },
+  description: 'Send beautiful flowers to your loved ones in Cambodia. Fresh bouquets, roses, arrangements, cakes, and gift baskets delivered same-day across Phnom Penh, Siem Reap, Battambang, and Sihanoukville. Order online today!',
+  keywords: [
+    'flowers cambodia', 'send flowers to cambodia', 'flower delivery cambodia',
+    'phnom penh florist', 'cambodia bouquet', 'roses cambodia', 'flower shop phnom penh',
+    'send flowers phnom penh', 'cambodia flower delivery', 'birthday flowers cambodia',
+    'valentine flowers cambodia', 'wedding flowers cambodia', 'sympathy flowers cambodia',
+    'cake delivery cambodia', 'gift baskets cambodia', 'same day flower delivery cambodia',
+    'ផ្កា', 'ផ្កាកម្ពុជា', 'ដឹកជញ្ជូនផ្កា', 'ផ្កាភ្នំពេញ',
+  ],
+  metadataBase: new URL('https://cambodiafloral.com'),
+  alternates: { canonical: '/' },
+  openGraph: {
+    title: 'Cambodia Floral - Send Flowers to Cambodia',
+    description: 'Fresh bouquets, roses, arrangements, cakes & gift baskets delivered same-day across Cambodia. Order online!',
+    url: 'https://cambodiafloral.com',
+    siteName: 'Cambodia Floral',
+    locale: 'en_US',
+    type: 'website',
+    images: [{ url: '/og-image.png', width: 1200, height: 630, alt: 'Cambodia Floral - Flower Delivery' }],
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: 'Cambodia Floral - Send Flowers to Cambodia',
+    description: 'Fresh bouquets, roses, cakes & gift baskets delivered same-day across Cambodia.',
+    images: ['/og-image.png'],
+  },
+  robots: { index: true, follow: true, googleBot: { index: true, follow: true, 'max-image-preview': 'large' } },
+  verification: {},
 }
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="en" className={`${dmSans.variable} ${playfair.variable}`}>
+      <head>
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{
+            __html: JSON.stringify({
+              '@context': 'https://schema.org',
+              '@type': 'Florist',
+              name: 'Cambodia Floral',
+              url: 'https://cambodiafloral.com',
+              logo: 'https://cambodiafloral.com/logo.png',
+              description: 'Send beautiful flowers, bouquets, cakes and gift baskets to Cambodia. Same-day delivery across Phnom Penh, Siem Reap, Battambang, and Sihanoukville.',
+              address: {
+                '@type': 'PostalAddress',
+                addressLocality: 'Phnom Penh',
+                addressCountry: 'KH',
+              },
+              areaServed: [
+                { '@type': 'City', name: 'Phnom Penh' },
+                { '@type': 'City', name: 'Siem Reap' },
+                { '@type': 'City', name: 'Battambang' },
+                { '@type': 'City', name: 'Sihanoukville' },
+              ],
+              priceRange: '$45 - $250',
+              openingHoursSpecification: {
+                '@type': 'OpeningHoursSpecification',
+                dayOfWeek: ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'],
+                opens: '08:00',
+                closes: '20:00',
+              },
+              sameAs: [],
+            }),
+          }}
+        />
+      </head>
       <body>
         <AuthProvider>
           <CartProvider>

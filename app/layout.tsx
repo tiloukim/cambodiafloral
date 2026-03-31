@@ -5,6 +5,7 @@ import { CartProvider } from '@/lib/cart-context'
 import AdminAddButton from '@/components/AdminAddButton'
 import ChatWidget from '@/components/ChatWidget'
 import TelegramButton from '@/components/TelegramButton'
+import { GoogleAnalytics } from '@/components/GoogleAnalytics'
 import './globals.css'
 
 const dmSans = DM_Sans({
@@ -58,6 +59,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   return (
     <html lang="en" className={`${dmSans.variable} ${playfair.variable}`}>
       <head>
+        <GoogleAnalytics />
         <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{

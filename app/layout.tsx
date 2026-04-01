@@ -88,7 +88,9 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
                 opens: '08:00',
                 closes: '20:00',
               },
-              sameAs: [],
+              sameAs: [
+                'https://t.me/CambodiaFloral_Bot',
+              ],
             }),
           }}
         />

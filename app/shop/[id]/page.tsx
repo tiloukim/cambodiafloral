@@ -41,6 +41,61 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   }
 }
 
-export default function ProductPage() {
-  return <ProductDetail />
+export default async function ProductPage({ params }: Props) {
+  const { id } = await params
+  const supabase = createServiceClient()
+  const { data: product } = await supabase
+    .from('cf_products')
+    .select('title, description, price, category, occasion, image_url')
+    .eq('id', id)
+    .eq('is_active', true)
+    .single()
+
+  const jsonLd = product ? {
+    '@context': 'https://schema.org',
+    '@type': 'Product',
+    name: product.title,
+    description: product.description || `${product.title} - Beautiful ${product.category} from Cambodia Floral`,
+    image: product.image_url || 'https://cambodiafloral.com/og-image.png',
+    url: `https://cambodiafloral.com/shop/${id}`,
+    brand: {
+      '@type': 'Brand',
+      name: 'Cambodia Floral',
+    },
+    offers: {
+      '@type': 'Offer',
+      price: product.price,
+      priceCurrency: 'USD',
+      availability: 'https://schema.org/InStock',
+      seller: {
+        '@type': 'Organization',
+        name: 'Cambodia Floral',
+      },
+      shippingDetails: {
+        '@type': 'OfferShippingDetails',
+        shippingDestination: {
+          '@type': 'DefinedRegion',
+          addressCountry: 'KH',
+        },
+        deliveryTime: {
+          '@type': 'ShippingDeliveryTime',
+          handlingTime: { '@type': 'QuantitativeValue', minValue: 0, maxValue: 1, unitCode: 'DAY' },
+          transitTime: { '@type': 'QuantitativeValue', minValue: 0, maxValue: 1, unitCode: 'DAY' },
+        },
+      },
+    },
+    category: product.category,
+  } : null
+
+  return (
+    <>
+      {jsonLd && (
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+        />
+      )}
+      <ProductDetail />
+    </>
+  )
 }

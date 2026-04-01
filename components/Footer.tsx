@@ -45,6 +45,13 @@ export default function Footer() {
             <span style={{ fontSize: 12, color: '#9C7A8E', fontStyle: 'italic' }}>Other provinces coming soon</span>
           </div>
         </div>
+        <div className="footer-col">
+          <h4 style={{ fontSize: 13, fontWeight: 700, color: '#F9A8D4', marginBottom: 12, textTransform: 'uppercase', letterSpacing: '1px' }}>Follow Us</h4>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+            <a href="https://www.facebook.com/profile.php?id=61575380524225" target="_blank" rel="noopener noreferrer" style={{ fontSize: 13, color: '#C9A0B4', textDecoration: 'none' }}>Facebook</a>
+            <a href="https://t.me/CambodiaFloral_Bot" target="_blank" rel="noopener noreferrer" style={{ fontSize: 13, color: '#C9A0B4', textDecoration: 'none' }}>Telegram</a>
+          </div>
+        </div>
       </div>
       <div style={{ borderTop: '1px solid rgba(201,160,180,.2)', paddingTop: 20, textAlign: 'center', fontSize: 12 }}>
         &copy; {new Date().getFullYear()} Cambodia Floral. All rights reserved.

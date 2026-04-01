@@ -89,6 +89,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
                 closes: '20:00',
               },
               sameAs: [
+                'https://www.facebook.com/profile.php?id=61575380524225',
                 'https://t.me/CambodiaFloral_Bot',
               ],
             }),

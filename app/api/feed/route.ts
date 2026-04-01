@@ -24,13 +24,13 @@ export async function GET() {
       <title><![CDATA[${p.title}]]></title>
       <description><![CDATA[${p.description || `${p.title} - Fresh flowers from Cambodia Floral. Order online for same-day delivery in Phnom Penh.`}]]></description>
       <link>https://cambodiafloral.com/shop/${p.id}</link>
-      <g:image_link>${imageUrl}</g:image_link>
+      <g:image_link>${escapeXml(imageUrl)}</g:image_link>
       <g:availability>in_stock</g:availability>
       <g:price>${Number(p.price).toFixed(2)} USD</g:price>${p.compare_price ? `\n      <g:sale_price>${Number(p.price).toFixed(2)} USD</g:sale_price>` : ''}
       <g:brand>Cambodia Floral</g:brand>
       <g:condition>new</g:condition>
-      <g:google_product_category>${googleCategory}</g:google_product_category>
-      <g:product_type>${capitalize(category)}</g:product_type>
+      <g:google_product_category>${escapeXml(googleCategory)}</g:google_product_category>
+      <g:product_type>${escapeXml(capitalize(category))}</g:product_type>
       <g:shipping>
         <g:country>KH</g:country>
         <g:service>Same-Day Delivery</g:service>
@@ -70,4 +70,8 @@ const categoryMap: Record<string, string> = {
 
 function capitalize(s: string) {
   return s.charAt(0).toUpperCase() + s.slice(1)
+}
+
+function escapeXml(s: string) {
+  return s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;')
 }

@@ -52,7 +52,9 @@ export const metadata: Metadata = {
     images: ['/og-image.png'],
   },
   robots: { index: true, follow: true, googleBot: { index: true, follow: true, 'max-image-preview': 'large' } },
-  verification: {},
+  verification: {
+    google: '56Q-FKW1AhdKPfh4oDHF3EIUvFAXU_IbAtZLhEZ3SBs',
+  },
 }
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {

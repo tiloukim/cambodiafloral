@@ -119,7 +119,7 @@ export async function POST(req: NextRequest) {
           },
           body: JSON.stringify({
             from: 'Cambodia Floral <orders@cambodiafloral.com>',
-            to: [ADMIN_EMAIL, ...(process.env.ADMIN_EMAIL_2 ? [process.env.ADMIN_EMAIL_2] : [])],
+            to: [ADMIN_EMAIL, ...(process.env.ADMIN_EMAIL_2 ? [process.env.ADMIN_EMAIL_2] : []), 'orders@cambodiafloral.com'],
             reply_to: email,
             subject: `Custom Order Request - ${event_type} - ${arrangement_type} (${budget})`,
             html,

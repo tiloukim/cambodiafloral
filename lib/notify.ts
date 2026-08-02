@@ -109,7 +109,7 @@ async function sendEmail(subject: string, html: string, replyTo?: string) {
       },
       body: JSON.stringify({
         from: 'Cambodia Floral <orders@cambodiafloral.com>',
-        to: [ADMIN_EMAIL, ...(process.env.ADMIN_EMAIL_2 ? [process.env.ADMIN_EMAIL_2] : [])],
+        to: [ADMIN_EMAIL, ...(process.env.ADMIN_EMAIL_2 ? [process.env.ADMIN_EMAIL_2] : []), 'orders@cambodiafloral.com'],
         ...(replyTo ? { reply_to: replyTo } : {}),
         subject,
         html,

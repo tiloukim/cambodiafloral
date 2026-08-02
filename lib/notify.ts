@@ -95,7 +95,7 @@ function formatOrderHTML(data: OrderNotification): string {
   `
 }
 
-async function sendEmail(subject: string, html: string) {
+async function sendEmail(subject: string, html: string, replyTo?: string) {
   const { RESEND_API_KEY, ADMIN_EMAIL } = getEnv()
   console.log('[notify] sendEmail called, has API key:', !!RESEND_API_KEY, 'has admin email:', !!ADMIN_EMAIL)
   if (!RESEND_API_KEY || !ADMIN_EMAIL) return
@@ -108,8 +108,9 @@ async function sendEmail(subject: string, html: string) {
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        from: 'Cambodia Floral <noreply@cambodiafloral.com>',
+        from: 'Cambodia Floral <orders@cambodiafloral.com>',
         to: [ADMIN_EMAIL, ...(process.env.ADMIN_EMAIL_2 ? [process.env.ADMIN_EMAIL_2] : [])],
+        ...(replyTo ? { reply_to: replyTo } : {}),
         subject,
         html,
       }),
@@ -148,7 +149,7 @@ export async function notifyOrderAdmin(data: OrderNotification) {
   const subject = `${label} #${data.orderId.slice(0, 8)} - $${data.total.toFixed(2)}`
 
   await Promise.all([
-    sendEmail(subject, formatOrderHTML(data)),
+    sendEmail(subject, formatOrderHTML(data), data.senderEmail),
     sendTelegram(formatOrderText(data)),
   ])
 }
@@ -165,7 +166,7 @@ export async function notifyMessageAdmin(data: MessageNotification) {
   const text = `New Message\n\nFrom: ${data.customerName} (${data.customerEmail})\n\n"${data.message}"`
 
   await Promise.all([
-    sendEmail(subject, html),
+    sendEmail(subject, html, data.customerEmail),
     sendTelegram(text),
   ])
 }

@@ -87,6 +87,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
     { href: '/admin', label: 'Dashboard', icon: '&#128200;' },
     { href: '/admin/orders', label: 'Orders', icon: '&#128230;' },
     { href: '/admin/products', label: 'Products', icon: '&#127804;' },
+    { href: '/admin/promo-codes', label: 'Promo Codes', icon: '&#127991;' },
     { href: '/admin/customers', label: 'Customers', icon: '&#128101;' },
     { href: '/admin/messages', label: 'Messages', icon: '&#128172;' },
   ]
@@ -145,7 +146,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
             &#9776;
           </button>
           <h2 className="admin-page-title">
-            {pathname === '/admin' ? 'Dashboard' : pathname === '/admin/orders' ? 'Orders' : pathname === '/admin/products' ? 'Products' : pathname === '/admin/customers' ? 'Customers' : pathname === '/admin/messages' ? 'Messages' : pathname.startsWith('/admin/orders/') ? 'Order Detail' : 'Admin'}
+            {pathname === '/admin' ? 'Dashboard' : pathname === '/admin/orders' ? 'Orders' : pathname === '/admin/products' ? 'Products' : pathname === '/admin/promo-codes' ? 'Promo Codes' : pathname === '/admin/customers' ? 'Customers' : pathname === '/admin/messages' ? 'Messages' : pathname.startsWith('/admin/orders/') ? 'Order Detail' : 'Admin'}
           </h2>
           <div className="admin-header-actions">
             <div style={{ position: 'relative' }}>

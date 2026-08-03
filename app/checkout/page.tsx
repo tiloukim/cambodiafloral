@@ -40,6 +40,45 @@ function CheckoutContent() {
   const [deliveryTime, setDeliveryTime] = useState('')
   const [cardMessage, setCardMessage] = useState('')
 
+  const [promoInput, setPromoInput] = useState('')
+  const [promo, setPromo] = useState<{ code: string; discount: number; freeDelivery: boolean; label: string } | null>(null)
+  const [promoError, setPromoError] = useState('')
+  const [promoLoading, setPromoLoading] = useState(false)
+
+  const discount = promo?.discount || 0
+  const effectiveDelivery = promo?.freeDelivery ? 0 : deliveryFee
+  const grandTotal = Math.max(0, total - discount + effectiveDelivery)
+
+  const applyPromo = async () => {
+    const code = promoInput.trim()
+    if (!code) return
+    setPromoLoading(true)
+    setPromoError('')
+    try {
+      const res = await fetch('/api/promo/validate', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ code, subtotal: total }),
+      })
+      const data = await res.json()
+      if (data.valid) {
+        setPromo({ code: data.code, discount: data.discount, freeDelivery: data.freeDelivery, label: data.label })
+      } else {
+        setPromo(null)
+        setPromoError(data.error || 'Invalid promo code')
+      }
+    } catch {
+      setPromoError('Could not validate code')
+    }
+    setPromoLoading(false)
+  }
+
+  const removePromo = () => {
+    setPromo(null)
+    setPromoInput('')
+    setPromoError('')
+  }
+
   const searchParams = useSearchParams()
   const [error, setError] = useState(searchParams.get('cancelled') ? 'Payment was cancelled. You can try again.' : '')
   const [submitting, setSubmitting] = useState(false)
@@ -52,11 +91,13 @@ function CheckoutContent() {
     senderName, senderEmail, senderPhone, senderCountry,
     recipientName, recipientPhone, recipientAddress, recipientCity,
     deliveryDate, deliveryTime, cardMessage, items,
+    promoCode: promo?.code || null,
   })
   formRef.current = {
     senderName, senderEmail, senderPhone, senderCountry,
     recipientName, recipientPhone, recipientAddress, recipientCity,
     deliveryDate, deliveryTime, cardMessage, items,
+    promoCode: promo?.code || null,
   }
 
   const clearCartRef = useRef(clearCart)
@@ -106,6 +147,7 @@ function CheckoutContent() {
           delivery_date: f.deliveryDate || null,
           delivery_time: f.deliveryTime || null,
           card_message: f.cardMessage || null,
+          promo_code: f.promoCode,
           payment_method: 'paypal',
           items: f.items.map(i => ({
             product_id: i.id,
@@ -339,27 +381,61 @@ function CheckoutContent() {
               </div>
             ))}
 
+            {/* Promo code */}
+            <div style={{ borderTop: '1px solid #FFE4EF', marginTop: 16, paddingTop: 16 }}>
+              {promo ? (
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', background: '#F0FDF4', border: '1px solid #BBF7D0', borderRadius: 10, padding: '10px 12px' }}>
+                  <div style={{ fontSize: 13 }}>
+                    <span style={{ fontWeight: 700, color: '#065F46', fontFamily: 'monospace' }}>{promo.code}</span>
+                    <span style={{ color: '#059669', marginLeft: 8 }}>{promo.label}</span>
+                  </div>
+                  <button onClick={removePromo} style={{ background: 'none', border: 'none', color: '#9C7A8E', fontSize: 12, fontWeight: 600, cursor: 'pointer' }}>Remove</button>
+                </div>
+              ) : (
+                <div style={{ display: 'flex', gap: 8 }}>
+                  <input
+                    value={promoInput}
+                    onChange={e => setPromoInput(e.target.value.toUpperCase())}
+                    onKeyDown={e => { if (e.key === 'Enter') { e.preventDefault(); applyPromo() } }}
+                    placeholder="Promo code"
+                    style={{ flex: 1, padding: '10px 12px', border: '2px solid #FFD6E8', borderRadius: 10, fontSize: 14, outline: 'none', boxSizing: 'border-box', fontFamily: 'inherit', textTransform: 'uppercase' }}
+                  />
+                  <button onClick={applyPromo} disabled={promoLoading} style={{ background: '#4A3040', color: '#fff', padding: '0 18px', borderRadius: 10, fontSize: 13, fontWeight: 700, border: 'none', cursor: promoLoading ? 'default' : 'pointer', opacity: promoLoading ? 0.6 : 1 }}>
+                    {promoLoading ? '…' : 'Apply'}
+                  </button>
+                </div>
+              )}
+              {promoError && <div style={{ color: '#DC2626', fontSize: 12, fontWeight: 600, marginTop: 8 }}>{promoError}</div>}
+            </div>
+
+            {/* Totals */}
             <div style={{ borderTop: '1px solid #FFE4EF', marginTop: 16, paddingTop: 16 }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 8, fontSize: 14, color: '#7A5A6A' }}>
                 <span>Subtotal</span>
                 <span>${total.toFixed(2)}</span>
               </div>
+              {discount > 0 && (
+                <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 8, fontSize: 14, color: '#059669', fontWeight: 600 }}>
+                  <span>Discount{promo ? ` (${promo.code})` : ''}</span>
+                  <span>−${discount.toFixed(2)}</span>
+                </div>
+              )}
               <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 8, fontSize: 14, color: '#7A5A6A' }}>
                 <span>Delivery Fee</span>
-                {deliveryFee === 0 ? (
+                {effectiveDelivery === 0 ? (
                   <span style={{ color: '#10B981', fontWeight: 600 }}>FREE</span>
                 ) : (
-                  <span>${deliveryFee.toFixed(2)}</span>
+                  <span>${effectiveDelivery.toFixed(2)}</span>
                 )}
               </div>
-              {deliveryFee === 0 && (
+              {effectiveDelivery === 0 && (
                 <div style={{ background: '#D1FAE5', color: '#065F46', fontSize: 11, fontWeight: 600, padding: '4px 10px', borderRadius: 6, marginBottom: 12, textAlign: 'center' }}>
                   🎉 Free delivery applied!
                 </div>
               )}
               <div style={{ borderTop: '1px solid #FFE4EF', paddingTop: 12, display: 'flex', justifyContent: 'space-between' }}>
                 <span style={{ fontSize: 17, fontWeight: 700, color: '#4A3040' }}>Total</span>
-                <span style={{ fontSize: 17, fontWeight: 700, color: '#DB2777' }}>${(total + deliveryFee).toFixed(2)}</span>
+                <span style={{ fontSize: 17, fontWeight: 700, color: '#DB2777' }}>${grandTotal.toFixed(2)}</span>
               </div>
             </div>
 

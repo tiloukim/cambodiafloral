@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server'
 import { createClient, createServiceClient } from '@/lib/supabase/server'
 import { notifyOrderAdmin } from '@/lib/notify'
+import { evaluatePromo, type PromoCode } from '@/lib/promo'
 
 const DELIVERY_FEE = 5
 const FREE_DELIVERY_THRESHOLD = 100
@@ -77,8 +78,28 @@ export async function POST(req: Request) {
 
   // Calculate totals
   const subtotal = body.items.reduce((sum: number, item: { price: number; quantity: number }) => sum + item.price * item.quantity, 0)
-  const deliveryFee = subtotal >= FREE_DELIVERY_THRESHOLD ? 0 : DELIVERY_FEE
-  const total = subtotal + deliveryFee
+  let deliveryFee = subtotal >= FREE_DELIVERY_THRESHOLD ? 0 : DELIVERY_FEE
+
+  // Apply promo code (authoritative server-side check)
+  let discount = 0
+  let appliedCode: string | null = null
+  if (body.promo_code) {
+    const code = String(body.promo_code).trim().toUpperCase()
+    const { data: promo } = await supabase
+      .from('cf_promo_codes')
+      .select('*')
+      .eq('code', code)
+      .maybeSingle()
+    const result = evaluatePromo(promo as PromoCode | null, subtotal, deliveryFee)
+    if (!result.ok) {
+      return NextResponse.json({ error: result.error || 'Invalid promo code' }, { status: 400 })
+    }
+    discount = result.discount
+    if (result.freeDelivery) deliveryFee = 0
+    appliedCode = code
+  }
+
+  const total = Math.max(0, subtotal - discount + deliveryFee)
 
   // Create order with status 'pending'
   const { data: order, error: orderErr } = await supabase
@@ -87,6 +108,8 @@ export async function POST(req: Request) {
       customer_id: customerId,
       status: 'pending',
       subtotal,
+      discount,
+      promo_code: appliedCode,
       delivery_fee: deliveryFee,
       total,
       payment_method: 'paypal',

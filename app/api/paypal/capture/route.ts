@@ -64,6 +64,13 @@ export async function POST(req: Request) {
     const supabase = createServiceClient()
     const captureId = data.purchase_units?.[0]?.payments?.captures?.[0]?.id
 
+    // Read current state first so we only count a promo redemption once
+    const { data: existingOrder } = await supabase
+      .from('cf_orders')
+      .select('status, promo_code')
+      .eq('id', order_id)
+      .maybeSingle()
+
     await supabase
       .from('cf_orders')
       .update({
@@ -72,6 +79,22 @@ export async function POST(req: Request) {
         status: 'confirmed',
       })
       .eq('id', order_id)
+
+    // Count the promo redemption once, on first successful payment
+    if (existingOrder && existingOrder.status !== 'confirmed' && existingOrder.promo_code) {
+      const code = String(existingOrder.promo_code).toUpperCase()
+      const { data: promo } = await supabase
+        .from('cf_promo_codes')
+        .select('id, used_count')
+        .eq('code', code)
+        .maybeSingle()
+      if (promo) {
+        await supabase
+          .from('cf_promo_codes')
+          .update({ used_count: (promo.used_count || 0) + 1 })
+          .eq('id', promo.id)
+      }
+    }
 
     return NextResponse.json({ success: true })
   } catch (err) {

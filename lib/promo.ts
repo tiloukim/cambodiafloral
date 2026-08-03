@@ -8,6 +8,7 @@ export interface PromoCode {
   used_count: number
   expires_at: string | null
   active: boolean
+  first_order_only: boolean
 }
 
 export interface PromoResult {

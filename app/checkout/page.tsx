@@ -58,7 +58,7 @@ function CheckoutContent() {
       const res = await fetch('/api/promo/validate', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ code, subtotal: total }),
+        body: JSON.stringify({ code, subtotal: total, email: senderEmail }),
       })
       const data = await res.json()
       if (data.valid) {

@@ -35,6 +35,7 @@ export async function POST(req: Request) {
       min_subtotal: Number(body.min_subtotal) || 0,
       max_uses: body.max_uses === '' || body.max_uses == null ? null : Number(body.max_uses),
       expires_at: body.expires_at || null,
+      first_order_only: body.first_order_only === true,
       active: body.active !== false,
     })
     .select()

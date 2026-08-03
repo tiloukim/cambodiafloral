@@ -12,6 +12,7 @@ interface PromoCode {
   used_count: number
   expires_at: string | null
   active: boolean
+  first_order_only: boolean
   created_at: string
 }
 
@@ -22,6 +23,7 @@ const emptyForm = {
   min_subtotal: '',
   max_uses: '',
   expires_at: '',
+  first_order_only: false,
 }
 
 export default function AdminPromoCodesPage() {
@@ -119,6 +121,10 @@ export default function AdminPromoCodesPage() {
             <input style={inputStyle} type="date" value={form.expires_at} onChange={e => setForm({ ...form, expires_at: e.target.value })} />
           </div>
         </div>
+        <label style={{ display: 'flex', alignItems: 'center', gap: 8, marginTop: 16, fontSize: 14, color: '#4A3040', cursor: 'pointer' }}>
+          <input type="checkbox" checked={form.first_order_only} onChange={e => setForm({ ...form, first_order_only: e.target.checked })} style={{ width: 16, height: 16, accentColor: '#EC4899' }} />
+          First-time customers only (valid on a customer&apos;s first paid order)
+        </label>
         {error && <div style={{ color: '#DC2626', fontSize: 13, fontWeight: 600, marginTop: 14 }}>{error}</div>}
         <button onClick={create} disabled={saving} style={{ marginTop: 18, background: '#EC4899', color: '#fff', padding: '11px 26px', borderRadius: 50, fontSize: 14, fontWeight: 700, border: 'none', cursor: saving ? 'default' : 'pointer', opacity: saving ? 0.6 : 1 }}>
           {saving ? 'Creating…' : 'Create Code'}
@@ -146,7 +152,10 @@ export default function AdminPromoCodesPage() {
                   const expired = c.expires_at ? new Date(c.expires_at).getTime() < Date.now() : false
                   return (
                     <tr key={c.id}>
-                      <td style={{ fontWeight: 700, color: '#4A3040', fontFamily: 'monospace' }}>{c.code}</td>
+                      <td style={{ fontWeight: 700, color: '#4A3040', fontFamily: 'monospace' }}>
+                        {c.code}
+                        {c.first_order_only && <span style={{ marginLeft: 8, fontFamily: 'sans-serif', fontSize: 10, fontWeight: 700, background: '#FCE7F3', color: '#BE185D', padding: '2px 7px', borderRadius: 50 }}>1ST ORDER</span>}
+                      </td>
                       <td>{describe(c)}</td>
                       <td className="admin-sub-text">{Number(c.min_subtotal) > 0 ? `$${Number(c.min_subtotal).toFixed(2)}` : '—'}</td>
                       <td className="admin-sub-text">{c.used_count}{c.max_uses != null ? ` / ${c.max_uses}` : ''}</td>

@@ -94,6 +94,17 @@ export async function POST(req: Request) {
     if (!result.ok) {
       return NextResponse.json({ error: result.error || 'Invalid promo code' }, { status: 400 })
     }
+    // First-time-customer codes: reject if this customer already has a paid order
+    if (promo?.first_order_only) {
+      const { count } = await supabase
+        .from('cf_orders')
+        .select('id', { count: 'exact', head: true })
+        .eq('customer_id', customerId)
+        .eq('status', 'confirmed')
+      if ((count || 0) > 0) {
+        return NextResponse.json({ error: 'This code is for first-time customers only' }, { status: 400 })
+      }
+    }
     discount = result.discount
     if (result.freeDelivery) deliveryFee = 0
     appliedCode = code

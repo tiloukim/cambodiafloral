@@ -10,6 +10,7 @@ create table if not exists cf_promo_codes (
   max_uses       integer,                       -- null = unlimited · 1 = one-time
   used_count     integer not null default 0,
   expires_at     timestamptz,                   -- null = never expires
+  first_order_only boolean not null default false, -- valid only on a customer's first paid order
   active         boolean not null default true,
   created_at     timestamptz not null default now()
 );

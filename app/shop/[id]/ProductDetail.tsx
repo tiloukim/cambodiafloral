@@ -7,6 +7,16 @@ import Footer from '@/components/Footer'
 import { useCart } from '@/lib/cart-context'
 import type { Product } from '@/lib/types'
 
+function StarRow({ value }: { value: number }) {
+  return (
+    <span style={{ fontSize: 15, letterSpacing: 1 }}>
+      {[1, 2, 3, 4, 5].map(n => (
+        <span key={n} style={{ color: n <= Math.round(value) ? '#F59E0B' : '#E5D3DC' }}>★</span>
+      ))}
+    </span>
+  )
+}
+
 export default function ProductDetail() {
   const { id } = useParams()
   const router = useRouter()
@@ -16,6 +26,9 @@ export default function ProductDetail() {
   const [qty, setQty] = useState(1)
   const [added, setAdded] = useState(false)
   const [selectedImage, setSelectedImage] = useState(0)
+  const [reviews, setReviews] = useState<{ id: string; author_name: string; rating: number; title: string | null; body: string | null; created_at: string }[]>([])
+  const [reviewAvg, setReviewAvg] = useState(0)
+  const [reviewCount, setReviewCount] = useState(0)
 
   useEffect(() => {
     fetch('/api/products')
@@ -26,6 +39,14 @@ export default function ProductDetail() {
       })
       .catch(() => {})
       .finally(() => setLoading(false))
+  }, [id])
+
+  useEffect(() => {
+    if (!id) return
+    fetch(`/api/reviews?product_id=${id}`)
+      .then(r => r.json())
+      .then(d => { setReviews(d.reviews || []); setReviewAvg(d.average || 0); setReviewCount(d.count || 0) })
+      .catch(() => {})
   }, [id])
 
   const handleAddToCart = () => {
@@ -265,6 +286,39 @@ export default function ProductDetail() {
               </p>
             </div>
           </div>
+        </div>
+
+        {/* Reviews */}
+        <div style={{ marginTop: 44 }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 20, flexWrap: 'wrap' }}>
+            <h2 style={{ fontFamily: 'var(--font-playfair), serif', fontSize: 24, fontWeight: 700, color: '#4A3040', margin: 0 }}>Reviews</h2>
+            {reviewCount > 0 && (
+              <span style={{ display: 'flex', alignItems: 'center', gap: 8, color: '#7A5A6A', fontSize: 14 }}>
+                <StarRow value={reviewAvg} />
+                <strong>{reviewAvg.toFixed(1)}</strong> · {reviewCount} review{reviewCount > 1 ? 's' : ''}
+              </span>
+            )}
+          </div>
+          {reviewCount === 0 ? (
+            <p style={{ color: '#9C7A8E', fontSize: 14 }}>No reviews yet. Verified buyers can leave a review after their order.</p>
+          ) : (
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+              {reviews.map(r => (
+                <div key={r.id} style={{ background: '#fff', border: '1px solid #FFE4EF', borderRadius: 14, padding: 18 }}>
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 6, gap: 8, flexWrap: 'wrap' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap' }}>
+                      <StarRow value={r.rating} />
+                      <span style={{ fontSize: 14, fontWeight: 700, color: '#4A3040' }}>{r.author_name}</span>
+                      <span style={{ fontSize: 11, fontWeight: 700, color: '#059669', background: '#F0FDF4', padding: '2px 8px', borderRadius: 50 }}>Verified buyer</span>
+                    </div>
+                    <span style={{ fontSize: 12, color: '#C9A0B4' }}>{new Date(r.created_at).toLocaleDateString()}</span>
+                  </div>
+                  {r.title && <div style={{ fontSize: 14, fontWeight: 700, color: '#4A3040', marginBottom: 4 }}>{r.title}</div>}
+                  {r.body && <p style={{ fontSize: 14, color: '#7A5A6A', lineHeight: 1.6, margin: 0 }}>{r.body}</p>}
+                </div>
+              ))}
+            </div>
+          )}
         </div>
       </div>
 

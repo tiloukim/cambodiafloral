@@ -51,6 +51,36 @@ export default async function ProductPage({ params }: Props) {
     .eq('is_active', true)
     .single()
 
+  // Real, approved reviews → aggregateRating + review schema (star rich results)
+  const { data: reviewRows } = await supabase
+    .from('cf_reviews')
+    .select('author_name, rating, title, body, created_at')
+    .eq('product_id', id)
+    .eq('approved', true)
+    .order('created_at', { ascending: false })
+    .limit(20)
+  const reviews = reviewRows || []
+  const reviewCount = reviews.length
+  const avgRating = reviewCount ? Math.round((reviews.reduce((s, r) => s + r.rating, 0) / reviewCount) * 10) / 10 : 0
+
+  const reviewSchema = reviewCount > 0 ? {
+    aggregateRating: {
+      '@type': 'AggregateRating',
+      ratingValue: avgRating,
+      reviewCount,
+      bestRating: 5,
+      worstRating: 1,
+    },
+    review: reviews.map(r => ({
+      '@type': 'Review',
+      reviewRating: { '@type': 'Rating', ratingValue: r.rating, bestRating: 5, worstRating: 1 },
+      author: { '@type': 'Person', name: r.author_name },
+      ...(r.body ? { reviewBody: r.body } : {}),
+      ...(r.title ? { name: r.title } : {}),
+      datePublished: r.created_at,
+    })),
+  } : {}
+
   const jsonLd = product ? {
     '@context': 'https://schema.org',
     '@type': 'Product',
@@ -85,6 +115,7 @@ export default async function ProductPage({ params }: Props) {
       },
     },
     category: product.category,
+    ...reviewSchema,
   } : null
 
   return (

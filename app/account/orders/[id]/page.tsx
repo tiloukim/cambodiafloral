@@ -68,6 +68,15 @@ export default function OrderDetailPage() {
           <OrderStatusBadge status={order.status} />
         </div>
 
+        {['confirmed', 'preparing', 'out_for_delivery', 'delivered'].includes(order.status) && (
+          <Link href={`/review/${order.id}`} style={{
+            display: 'inline-block', background: '#EC4899', color: '#fff', padding: '10px 22px',
+            borderRadius: 50, fontSize: 14, fontWeight: 700, textDecoration: 'none', marginBottom: 24,
+          }}>
+            ★ Leave a review
+          </Link>
+        )}
+
         {/* Tracking Timeline */}
         {!isCancelled && (
           <div style={{

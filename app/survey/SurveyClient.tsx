@@ -15,6 +15,9 @@ export default function SurveyClient() {
   const [saved, setSaved] = useState<string | null>(null)
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState('')
+  // A link that names an order we don't have can never succeed, so it gets its
+  // own dead end rather than a "try again" that would only fail identically.
+  const [badLink, setBadLink] = useState(false)
   const [detail, setDetail] = useState('')
 
   const submit = useCallback(async (source: string, detailText = '') => {
@@ -28,9 +31,10 @@ export default function SurveyClient() {
         body: JSON.stringify({ order_id: orderId, source, detail: detailText }),
       })
       if (res.ok) setSaved(sourceLabel(source, detailText))
-      else setError('Sorry, we could not save that. Please try again.')
+      else if (res.status === 404 || res.status === 400) setBadLink(true)
+      else setError('Sorry, we could not save that. Please try again in a moment.')
     } catch {
-      setError('Sorry, we could not save that. Please try again.')
+      setError('Sorry, we could not save that. Please check your connection and try again.')
     }
     setSaving(false)
   }, [orderId])
@@ -49,11 +53,20 @@ export default function SurveyClient() {
     <div style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column' }}>
       <Navbar />
       <div style={{ flex: 1, padding: '48px 20px', width: '100%' }}>
-        {!orderId ? (
+        {!orderId || badLink ? (
           <div style={card}>
             <div style={{ fontSize: 40, marginBottom: 12 }}>🌸</div>
-            <h1 style={{ fontFamily: 'var(--font-playfair), serif', fontSize: 24, color: '#4A3040', marginBottom: 8 }}>Nothing to answer here</h1>
-            <p style={{ color: '#9C7A8E', fontSize: 14 }}>This link is missing an order reference.</p>
+            <h1 style={{ fontFamily: 'var(--font-playfair), serif', fontSize: 24, color: '#4A3040', marginBottom: 8 }}>
+              We couldn&apos;t match this link to an order
+            </h1>
+            <p style={{ color: '#9C7A8E', fontSize: 14, lineHeight: 1.7 }}>
+              {orderId
+                ? 'The link may have been copied incompletely, or it came from a test message. Please use the buttons in your order confirmation email.'
+                : 'This link is missing its order reference. Please use the buttons in your order confirmation email.'}
+            </p>
+            <div style={{ marginTop: 22 }}>
+              <Link href="/shop" style={{ background: '#EC4899', color: '#fff', padding: '11px 24px', borderRadius: 50, fontSize: 14, fontWeight: 700, textDecoration: 'none' }}>Browse flowers</Link>
+            </div>
           </div>
         ) : saved ? (
           <div style={card}>

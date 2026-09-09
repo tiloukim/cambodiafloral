@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server'
 import { sendDeliveredEmail } from '@/lib/notify'
-import { grantSurveyReward } from '@/lib/rewards'
+import { grantSurveyReward, hasCompletedBoth } from '@/lib/rewards'
 import { createClient, createServiceClient } from '@/lib/supabase/server'
 import { isAdmin } from '@/lib/admin'
 
@@ -102,7 +102,8 @@ export async function PATCH(req: Request, { params }: { params: Promise<{ id: st
         .maybeSingle()
       rewardAvailable = !customer?.survey_reward_code
 
-      if (before.heard_from) {
+      // Same rule as everywhere else: both halves, or no discount.
+      if (hasCompletedBoth(before)) {
         reward = await grantSurveyReward(supabase, before.customer_id)
       }
     }

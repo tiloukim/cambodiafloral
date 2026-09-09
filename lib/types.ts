@@ -66,6 +66,10 @@ export interface Order {
   review_requested_at: string | null
   payment_fee: number | null
   payment_net: number | null
+  cogs?: number
+  fee?: number
+  feeEstimated?: boolean
+  profit?: number
   delivered_at: string | null
   created_at: string
   updated_at: string

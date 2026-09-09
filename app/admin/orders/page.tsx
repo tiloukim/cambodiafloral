@@ -219,19 +219,41 @@ export default function AdminOrders() {
                             ${o.total.toFixed(2)}
                           </td>
                         </tr>
-                        {o.payment_fee != null && (
+                        {o.fee != null && (
                           <>
                             <tr>
-                              <td style={{ color: '#9C7A8E', padding: '1px 0' }}>PayPal fee</td>
-                              <td style={{ textAlign: 'right', color: '#EF4444', padding: '1px 0' }}>−${Number(o.payment_fee).toFixed(2)}</td>
+                              <td style={{ color: '#9C7A8E', padding: '1px 0' }}>
+                                PayPal fee
+                                {o.feeEstimated && <span title="Estimated — PayPal's reported fee wasn't recorded for this order" style={{ marginLeft: 4, fontSize: 9, color: '#B08AA0' }}>est</span>}
+                              </td>
+                              <td style={{ textAlign: 'right', color: '#EF4444', padding: '1px 0' }}>−${o.fee.toFixed(2)}</td>
                             </tr>
                             <tr>
-                              <td style={{ color: '#9C7A8E', fontWeight: 600, padding: '1px 0' }}>You receive</td>
-                              <td style={{ textAlign: 'right', fontWeight: 700, color: '#059669', padding: '1px 0' }}>
-                                ${Number(o.payment_net ?? (o.total - Number(o.payment_fee))).toFixed(2)}
+                              <td style={{ color: '#9C7A8E', padding: '1px 0' }}>You receive</td>
+                              <td style={{ textAlign: 'right', color: '#059669', padding: '1px 0' }}>
+                                ${Number(o.payment_net ?? (o.total - o.fee)).toFixed(2)}
                               </td>
                             </tr>
                           </>
+                        )}
+                        {o.cogs != null && (
+                          <tr>
+                            <td style={{ color: '#9C7A8E', padding: '1px 0' }}>Cost of goods</td>
+                            <td style={{ textAlign: 'right', color: '#EF4444', padding: '1px 0' }}>−${o.cogs.toFixed(2)}</td>
+                          </tr>
+                        )}
+                        {o.profit != null && (
+                          <tr>
+                            <td style={{ fontWeight: 700, color: '#4A3040', borderTop: '1px solid #FFE4EF', padding: '3px 0 1px' }}>Profit</td>
+                            <td style={{ textAlign: 'right', fontWeight: 800, fontSize: 13, color: o.profit >= 0 ? '#10B981' : '#EF4444', borderTop: '1px solid #FFE4EF', padding: '3px 0 1px' }}>
+                              ${o.profit.toFixed(2)}
+                              {o.total > 0 && (
+                                <div style={{ fontSize: 9, fontWeight: 600, color: '#9C7A8E' }}>
+                                  {((o.profit / o.total) * 100).toFixed(0)}% margin
+                                </div>
+                              )}
+                            </td>
+                          </tr>
                         )}
                       </tbody>
                     </table>

@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server'
 import { createClient, createServiceClient } from '@/lib/supabase/server'
 import { isAdmin } from '@/lib/admin'
 import { notifyOrderAdmin } from '@/lib/notify'
+import { orderFee, roundCents } from '@/lib/fees'
 
 const DELIVERY_FEE = 5
 const FREE_DELIVERY_THRESHOLD = 100
@@ -30,11 +31,28 @@ export async function GET(req: Request) {
     const { data, error } = await query
     if (error) return NextResponse.json({ error: error.message }, { status: 500 })
 
+    // Cost of goods, from the products' recorded cost — same basis as the P&L,
+    // so a per-order profit here can't disagree with the report.
+    const { data: products } = await supabase.from('cf_products').select('id, cost')
+    const costById = new Map<string, number>()
+    products?.forEach(p => costById.set(p.id, Number(p.cost) || 0))
+
     // Map items for frontend
-    const adminOrders = (data || []).map(o => ({
-      ...o,
-      items: o.cf_order_items,
-    }))
+    const adminOrders = (data || []).map(o => {
+      const items = o.cf_order_items || []
+      const cogs = roundCents(items.reduce(
+        (sum: number, i: { product_id: string | null; quantity: number }) =>
+          sum + (costById.get(i.product_id || '') || 0) * i.quantity, 0))
+      const { fee, estimated } = orderFee(o)
+      return {
+        ...o,
+        items,
+        cogs,
+        fee,
+        feeEstimated: estimated,
+        profit: roundCents((Number(o.total) || 0) - fee - cogs),
+      }
+    })
 
     return NextResponse.json(adminOrders)
   }

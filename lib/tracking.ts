@@ -30,7 +30,9 @@ const HOSTS: [RegExp, string][] = [
   [/(^|\.)(facebook|fb)\./i, 'facebook'],
   [/(^|\.)instagram\.com$/i, 'instagram'],
   [/(^|\.)tiktok\.com$/i, 'tiktok'],
-  [/(^|\.)(t\.me|telegram)\./i, 'telegram'],
+  // t.me has no subdomain, so it must match whole — an earlier pattern
+  // requiring a trailing dot classified every Telegram click as "other".
+  [/^t\.me$|(^|\.)telegram\./i, 'telegram'],
   [/(^|\.)youtube\.com$/i, 'other'],
   [/(^|\.)pinterest\./i, 'other'],
 ]

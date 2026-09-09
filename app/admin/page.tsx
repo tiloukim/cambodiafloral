@@ -234,9 +234,10 @@ export default function AdminDashboard() {
 
       {/* How customers found us */}
       <div style={{ marginBottom: 32 }}>
-        <h3 style={{ fontSize: 16, fontWeight: 700, color: '#4A3040', marginBottom: 12 }}>
-          🔎 How Customers Found Us
-        </h3>
+        <div className="admin-section-header" style={{ marginBottom: 12 }}>
+          <h3 style={{ fontSize: 16, fontWeight: 700, color: '#4A3040' }}>🔎 How Customers Found Us</h3>
+          <Link href="/admin/survey" style={{ fontSize: 13, fontWeight: 600, color: '#EC4899', textDecoration: 'none' }}>Full report</Link>
+        </div>
         {(!stats.heardFrom || stats.heardFrom.length === 0) ? (
           <div className="admin-empty">
             No answers yet. Customers are asked at checkout and again in their confirmation email.

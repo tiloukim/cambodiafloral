@@ -90,6 +90,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
     { href: '/admin/products', label: 'Products', icon: '&#127804;' },
     { href: '/admin/promo-codes', label: 'Promo Codes', icon: '&#127991;' },
     { href: '/admin/reviews', label: 'Reviews', icon: '&#11088;' },
+    { href: '/admin/survey', label: 'How They Found Us', icon: '&#128269;' },
     { href: '/admin/customers', label: 'Customers', icon: '&#128101;' },
     { href: '/admin/messages', label: 'Messages', icon: '&#128172;' },
   ]
@@ -157,7 +158,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
             &#9776;
           </button>
           <h2 className="admin-page-title">
-            {pathname === '/admin' ? 'Dashboard' : pathname === '/admin/pl' ? 'Profit & Loss' : pathname === '/admin/orders' ? 'Orders' : pathname === '/admin/products' ? 'Products' : pathname === '/admin/promo-codes' ? 'Promo Codes' : pathname === '/admin/reviews' ? 'Reviews' : pathname === '/admin/customers' ? 'Customers' : pathname === '/admin/messages' ? 'Messages' : pathname.startsWith('/admin/orders/') ? 'Order Detail' : 'Admin'}
+            {pathname === '/admin' ? 'Dashboard' : pathname === '/admin/pl' ? 'Profit & Loss' : pathname === '/admin/orders' ? 'Orders' : pathname === '/admin/products' ? 'Products' : pathname === '/admin/promo-codes' ? 'Promo Codes' : pathname === '/admin/survey' ? 'How They Found Us' : pathname === '/admin/reviews' ? 'Reviews' : pathname === '/admin/customers' ? 'Customers' : pathname === '/admin/messages' ? 'Messages' : pathname.startsWith('/admin/orders/') ? 'Order Detail' : 'Admin'}
           </h2>
           <div className="admin-header-actions">
             <a

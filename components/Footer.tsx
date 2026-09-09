@@ -1,7 +1,10 @@
 import Link from 'next/link'
+import ReviewsStrip from './ReviewsStrip'
 
 export default function Footer() {
   return (
+    <>
+    <ReviewsStrip />
     <footer style={{
       background: '#4A3040',
       color: '#C9A0B4',
@@ -57,5 +60,6 @@ export default function Footer() {
         &copy; {new Date().getFullYear()} Cambodia Floral. All rights reserved.
       </div>
     </footer>
+    </>
   )
 }

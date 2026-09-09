@@ -17,6 +17,35 @@ export async function GET(req: Request) {
     return NextResponse.json(data)
   }
 
+  // Public: the latest approved reviews across every product, for the strip
+  // that sits above the footer sitewide.
+  if (searchParams.get('all') === '1') {
+    const limit = Math.min(Number(searchParams.get('limit')) || 8, 24)
+    const { data, error } = await supabase
+      .from('cf_reviews')
+      .select('id, author_name, rating, title, body, created_at, product_id, cf_products(title)')
+      .eq('approved', true)
+      .order('created_at', { ascending: false })
+      .limit(limit)
+    if (error) return NextResponse.json({ error: error.message }, { status: 500 })
+
+    const reviews = (data || []).map(r => ({
+      id: r.id,
+      author_name: r.author_name,
+      rating: r.rating,
+      title: r.title,
+      body: r.body,
+      created_at: r.created_at,
+      product_id: r.product_id,
+      product_title: (r.cf_products as { title?: string } | null)?.title || null,
+    }))
+
+    // Identical for every visitor, so let the CDN serve it.
+    return NextResponse.json({ reviews }, {
+      headers: { 'Cache-Control': 'public, s-maxage=300, stale-while-revalidate=3600' },
+    })
+  }
+
   // Public: approved reviews + aggregate for one product
   const productId = searchParams.get('product_id')
   if (!productId) return NextResponse.json({ error: 'product_id required' }, { status: 400 })

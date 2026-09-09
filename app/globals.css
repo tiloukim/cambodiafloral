@@ -480,3 +480,8 @@ body {
   .timeline-dot { width: 26px !important; height: 26px !important; font-size: 11px !important; }
   .timeline-bar { display: none; }
 }
+
+/* Sitewide reviews strip (above the footer) */
+.reviews-strip { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; }
+@media (max-width: 900px) { .reviews-strip { grid-template-columns: repeat(2, 1fr); } }
+@media (max-width: 560px) { .reviews-strip { grid-template-columns: 1fr; } }

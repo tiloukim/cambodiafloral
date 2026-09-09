@@ -48,7 +48,9 @@ export async function POST(req: Request) {
       product_id,
       order_id,
       customer_id: order.customer_id,
-      author_name: order.sender_name || 'Verified buyer',
+      // The consent checkbox promises "with my first name" — publish exactly
+      // that, not the full name they gave for delivery.
+      author_name: (order.sender_name || '').trim().split(/\s+/)[0] || 'Verified buyer',
       rating: order.feedback_rating,
       body: order.feedback_comment,
       approved: true,

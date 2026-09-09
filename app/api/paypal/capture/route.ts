@@ -62,7 +62,8 @@ export async function POST(req: Request) {
 
     // Update order in database
     const supabase = createServiceClient()
-    const captureId = data.purchase_units?.[0]?.payments?.captures?.[0]?.id
+    const capture = data.purchase_units?.[0]?.payments?.captures?.[0]
+    const captureId = capture?.id
 
     // Read current state first so we only count a promo redemption once
     const { data: existingOrder } = await supabase
@@ -79,6 +80,26 @@ export async function POST(req: Request) {
         status: 'confirmed',
       })
       .eq('id', order_id)
+
+    // Record what PayPal actually kept, so the P&L reflects real cash.
+    // Kept separate from the update above and deliberately non-fatal: if the
+    // fee columns haven't been added yet the payment must still go through.
+    const breakdown = capture?.seller_receivable_breakdown
+    if (breakdown) {
+      const num = (v: { value?: string } | undefined) =>
+        v?.value !== undefined ? Number(v.value) : null
+      const { error: feeErr } = await supabase
+        .from('cf_orders')
+        .update({
+          payment_gross: num(breakdown.gross_amount),
+          payment_fee: num(breakdown.paypal_fee),
+          payment_net: num(breakdown.net_amount),
+        })
+        .eq('id', order_id)
+      if (feeErr) {
+        console.error('[PayPal] could not record capture fee (run supabase/payment_fees.sql):', feeErr.message)
+      }
+    }
 
     // Count the promo redemption once, on first successful payment
     if (existingOrder && existingOrder.status !== 'confirmed' && existingOrder.promo_code) {

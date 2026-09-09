@@ -7,6 +7,7 @@ import OrderStatusBadge from '@/components/OrderStatusBadge'
 interface PeriodProfit {
   revenue: number
   cost: number
+  fees: number
   profit: number
 }
 
@@ -16,6 +17,7 @@ interface Stats {
   monthRevenue: number
   yearRevenue: number
   totalCost: number
+  totalFees: number
   totalProfit: number
   todayProfit: PeriodProfit
   monthProfit: PeriodProfit
@@ -88,7 +90,10 @@ export default function AdminDashboard() {
 
       {/* Earnings Report */}
       <div style={{ marginBottom: 32 }}>
-        <h3 style={{ fontSize: 16, fontWeight: 700, color: '#4A3040', marginBottom: 16 }}>💰 Earnings Report</h3>
+        <div className="admin-section-header" style={{ marginBottom: 16 }}>
+          <h3 style={{ fontSize: 16, fontWeight: 700, color: '#4A3040' }}>💰 Earnings Report</h3>
+          <Link href="/admin/pl" style={{ fontSize: 13, fontWeight: 600, color: '#EC4899', textDecoration: 'none' }}>Full P&amp;L</Link>
+        </div>
         <div style={{
           display: 'grid',
           gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))',
@@ -104,6 +109,10 @@ export default function AdminDashboard() {
             <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 8 }}>
               <span style={{ fontSize: 13, color: '#7A5A6A' }}>Cost</span>
               <span style={{ fontSize: 13, fontWeight: 600, color: '#EF4444' }}>-${stats.todayProfit.cost.toFixed(2)}</span>
+            </div>
+            <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 8 }}>
+              <span style={{ fontSize: 13, color: '#7A5A6A' }}>PayPal fees</span>
+              <span style={{ fontSize: 13, fontWeight: 600, color: '#EF4444' }}>-${stats.todayProfit.fees.toFixed(2)}</span>
             </div>
             <div style={{ borderTop: '1px solid #FFE4EF', paddingTop: 8, display: 'flex', justifyContent: 'space-between' }}>
               <span style={{ fontSize: 14, fontWeight: 700, color: '#4A3040' }}>Profit</span>
@@ -124,6 +133,10 @@ export default function AdminDashboard() {
               <span style={{ fontSize: 13, color: '#7A5A6A' }}>Cost</span>
               <span style={{ fontSize: 13, fontWeight: 600, color: '#EF4444' }}>-${stats.monthProfit.cost.toFixed(2)}</span>
             </div>
+            <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 8 }}>
+              <span style={{ fontSize: 13, color: '#7A5A6A' }}>PayPal fees</span>
+              <span style={{ fontSize: 13, fontWeight: 600, color: '#EF4444' }}>-${stats.monthProfit.fees.toFixed(2)}</span>
+            </div>
             <div style={{ borderTop: '1px solid #FFE4EF', paddingTop: 8, display: 'flex', justifyContent: 'space-between' }}>
               <span style={{ fontSize: 14, fontWeight: 700, color: '#4A3040' }}>Profit</span>
               <span style={{ fontSize: 18, fontWeight: 800, color: stats.monthProfit.profit >= 0 ? '#10B981' : '#EF4444' }}>
@@ -142,6 +155,10 @@ export default function AdminDashboard() {
             <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 8 }}>
               <span style={{ fontSize: 13, color: '#7A5A6A' }}>Cost</span>
               <span style={{ fontSize: 13, fontWeight: 600, color: '#EF4444' }}>-${stats.yearProfit.cost.toFixed(2)}</span>
+            </div>
+            <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 8 }}>
+              <span style={{ fontSize: 13, color: '#7A5A6A' }}>PayPal fees</span>
+              <span style={{ fontSize: 13, fontWeight: 600, color: '#EF4444' }}>-${stats.yearProfit.fees.toFixed(2)}</span>
             </div>
             <div style={{ borderTop: '1px solid #FFE4EF', paddingTop: 8, display: 'flex', justifyContent: 'space-between' }}>
               <span style={{ fontSize: 14, fontWeight: 700, color: '#4A3040' }}>Profit</span>
@@ -171,6 +188,10 @@ export default function AdminDashboard() {
           <div style={{ textAlign: 'center' }}>
             <div style={{ fontSize: 11, fontWeight: 700, color: '#9C7A8E', textTransform: 'uppercase', letterSpacing: '1px' }}>All-Time Cost</div>
             <div style={{ fontSize: 22, fontWeight: 800, color: '#EF4444', marginTop: 4 }}>${stats.totalCost.toFixed(2)}</div>
+          </div>
+          <div style={{ textAlign: 'center' }}>
+            <div style={{ fontSize: 11, fontWeight: 700, color: '#9C7A8E', textTransform: 'uppercase', letterSpacing: '1px' }}>All-Time PayPal Fees</div>
+            <div style={{ fontSize: 22, fontWeight: 800, color: '#EF4444', marginTop: 4 }}>${stats.totalFees.toFixed(2)}</div>
           </div>
           <div style={{ textAlign: 'center' }}>
             <div style={{ fontSize: 11, fontWeight: 700, color: '#9C7A8E', textTransform: 'uppercase', letterSpacing: '1px' }}>All-Time Profit</div>

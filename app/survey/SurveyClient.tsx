@@ -11,6 +11,8 @@ export default function SurveyClient() {
   const params = useSearchParams()
   const orderId = params.get('order') || ''
   const initialSource = params.get('source') || ''
+  const initialRating = Number(params.get('rating')) || 0
+  const ratingFlow = initialRating >= 1 && initialRating <= 5
 
   const [saved, setSaved] = useState<string | null>(null)
   const [saving, setSaving] = useState(false)
@@ -19,6 +21,10 @@ export default function SurveyClient() {
   // own dead end rather than a "try again" that would only fail identically.
   const [badLink, setBadLink] = useState(false)
   const [reward, setReward] = useState<{ code: string; isNew: boolean } | null>(null)
+  const [rating, setRating] = useState(0)
+  const [comment, setComment] = useState('')
+  const [feedbackSent, setFeedbackSent] = useState(false)
+  const [sendingFeedback, setSendingFeedback] = useState(false)
   const [detail, setDetail] = useState('')
 
   const submit = useCallback(async (source: string, detailText = '') => {
@@ -44,10 +50,32 @@ export default function SurveyClient() {
     setSaving(false)
   }, [orderId])
 
+  const sendFeedback = useCallback(async (stars: number, text: string) => {
+    if (!orderId || (!stars && !text.trim())) return
+    setSendingFeedback(true)
+    try {
+      const res = await fetch('/api/feedback', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ order_id: orderId, rating: stars || undefined, comment: text || undefined }),
+      })
+      if (res.ok) setFeedbackSent(true)
+    } catch { /* the thank-you stands either way */ }
+    setSendingFeedback(false)
+  }, [orderId])
+
   // Arriving from the email's one-click link records the answer immediately.
   useEffect(() => {
     if (initialSource && initialSource !== 'other') submit(initialSource)
   }, [initialSource, submit])
+
+  // A star tapped in the delivered email is already an answer — record it.
+  useEffect(() => {
+    if (initialRating >= 1 && initialRating <= 5) {
+      setRating(initialRating)
+      sendFeedback(initialRating, '')
+    }
+  }, [initialRating, sendFeedback])
 
   const card: React.CSSProperties = {
     maxWidth: 560, margin: '0 auto', background: '#fff', borderRadius: 16,
@@ -73,14 +101,44 @@ export default function SurveyClient() {
               <Link href="/shop" style={{ background: '#EC4899', color: '#fff', padding: '11px 24px', borderRadius: 50, fontSize: 14, fontWeight: 700, textDecoration: 'none' }}>Browse flowers</Link>
             </div>
           </div>
-        ) : saved ? (
+        ) : (saved || ratingFlow) ? (
           <div style={card}>
             <div style={{ fontSize: 40, marginBottom: 12 }}>💗</div>
             <h1 style={{ fontFamily: 'var(--font-playfair), serif', fontSize: 26, color: '#4A3040', marginBottom: 8 }}>Thank you!</h1>
-            <p style={{ color: '#7A5A6A', fontSize: 15, lineHeight: 1.7 }}>
-              You told us you found us through <strong style={{ color: '#EC4899' }}>{saved}</strong>.
-              That genuinely helps a small shop like ours.
-            </p>
+            {saved ? (
+              <p style={{ color: '#7A5A6A', fontSize: 15, lineHeight: 1.7 }}>
+                You told us you found us through <strong style={{ color: '#EC4899' }}>{saved}</strong>.
+                That genuinely helps a small shop like ours.
+              </p>
+            ) : (
+              <p style={{ color: '#7A5A6A', fontSize: 15, lineHeight: 1.7 }}>
+                Your rating is in. Anything you&apos;d like to add is below.
+              </p>
+            )}
+
+            {/* Rated but never told us where they found us: still worth asking, and still worth 5%. */}
+            {!saved && (
+              <div style={{ marginTop: 20, background: '#FFF8FC', border: '1px dashed #EC4899', borderRadius: 12, padding: '16px 14px' }}>
+                <div style={{ fontSize: 14, fontWeight: 700, color: '#4A3040' }}>Get 5% off your next order</div>
+                <div style={{ fontSize: 13, color: '#9C7A8E', margin: '4px 0 12px' }}>Just tell us how you found us.</div>
+                <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, justifyContent: 'center' }}>
+                  {SOURCES.filter(x => x.key !== 'other').map(x => (
+                    <button
+                      key={x.key}
+                      disabled={saving}
+                      onClick={() => submit(x.key)}
+                      style={{
+                        padding: '7px 13px', borderRadius: 50, border: '1px solid #FFD6E8',
+                        background: '#fff', color: '#4A3040', fontSize: 13, fontWeight: 600,
+                        cursor: saving ? 'wait' : 'pointer',
+                      }}
+                    >
+                      {x.emoji} {x.label}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
             {reward && (
               <div style={{ margin: '22px 0 4px', background: 'linear-gradient(135deg,#FFF0F5,#FFE4EF)', border: '1px solid #FFD6E8', borderRadius: 14, padding: '20px 18px' }}>
                 <div style={{ fontSize: 12, fontWeight: 700, color: '#EC4899', textTransform: 'uppercase', letterSpacing: 1 }}>
@@ -95,6 +153,54 @@ export default function SurveyClient() {
                 </div>
               </div>
             )}
+            <div style={{ marginTop: 24, borderTop: '1px solid #FFE4EF', paddingTop: 20, textAlign: 'left' }}>
+              <div style={{ fontSize: 15, fontWeight: 700, color: '#4A3040', marginBottom: 2, textAlign: 'center' }}>
+                {feedbackSent ? 'Thanks for the feedback!' : 'How did we do?'}
+              </div>
+              <div style={{ fontSize: 13, color: '#9C7A8E', marginBottom: 12, textAlign: 'center' }}>
+                {feedbackSent ? 'We read every one of these.' : 'Optional \u2014 but it helps us get better.'}
+              </div>
+              <div style={{ display: 'flex', gap: 6, justifyContent: 'center', marginBottom: 12 }}>
+                {[1, 2, 3, 4, 5].map(n => (
+                  <button
+                    key={n}
+                    onClick={() => { setRating(n); sendFeedback(n, comment) }}
+                    aria-label={`${n} star${n > 1 ? 's' : ''}`}
+                    style={{
+                      background: 'none', border: 'none', cursor: 'pointer', padding: 0,
+                      fontSize: 30, lineHeight: 1, color: n <= rating ? '#F59E0B' : '#E5D3DC',
+                    }}
+                  >
+                    &#9733;
+                  </button>
+                ))}
+              </div>
+              <textarea
+                value={comment}
+                onChange={e => setComment(e.target.value)}
+                placeholder="Anything you'd like us to know? (optional)"
+                maxLength={1000}
+                rows={3}
+                style={{
+                  width: '100%', padding: '10px 12px', borderRadius: 10, border: '1px solid #FFD6E8',
+                  fontSize: 14, fontFamily: 'inherit', resize: 'vertical',
+                }}
+              />
+              <div style={{ textAlign: 'center', marginTop: 10 }}>
+                <button
+                  onClick={() => sendFeedback(rating, comment)}
+                  disabled={sendingFeedback || (!rating && !comment.trim())}
+                  style={{
+                    padding: '10px 24px', borderRadius: 50, border: 'none', fontSize: 14, fontWeight: 700,
+                    background: (rating || comment.trim()) ? '#EC4899' : '#F3D9E6', color: '#fff',
+                    cursor: (rating || comment.trim()) ? 'pointer' : 'not-allowed',
+                  }}
+                >
+                  {feedbackSent ? 'Update feedback' : 'Send feedback'}
+                </button>
+              </div>
+            </div>
+
             <div style={{ marginTop: 22, display: 'flex', gap: 10, justifyContent: 'center', flexWrap: 'wrap' }}>
               <Link href={`/track?order=${orderId}`} style={{ background: '#EC4899', color: '#fff', padding: '11px 24px', borderRadius: 50, fontSize: 14, fontWeight: 700, textDecoration: 'none' }}>Track your order</Link>
               <Link href="/shop" style={{ background: '#fff', color: '#EC4899', border: '1px solid #FFD6E8', padding: '11px 24px', borderRadius: 50, fontSize: 14, fontWeight: 700, textDecoration: 'none' }}>Keep browsing</Link>

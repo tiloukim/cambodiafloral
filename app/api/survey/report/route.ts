@@ -17,6 +17,9 @@ interface OrderRow {
   heard_from?: string | null
   heard_from_detail?: string | null
   heard_from_at?: string | null
+  feedback_rating?: number | null
+  feedback_comment?: string | null
+  feedback_at?: string | null
   created_at: string
 }
 
@@ -47,6 +50,8 @@ export async function GET() {
       source: o.heard_from || null,
       detail: o.heard_from_detail || null,
       answeredAt: o.heard_from_at || null,
+      rating: o.feedback_rating ?? null,
+      comment: o.feedback_comment || null,
     }))
 
   return NextResponse.json({ timeZoneLabel: SHOP_TIME_ZONE_LABEL, rows })

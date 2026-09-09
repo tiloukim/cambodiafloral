@@ -373,6 +373,18 @@ function surveyButtons(orderId: string, offerReward: boolean): string {
     </div>`
 }
 
+/** One-tap stars. Each links straight through to the recorded rating. */
+function starRow(orderId: string): string {
+  const star = (n: number) =>
+    `<a href="${SITE_URL}/survey?order=${encodeURIComponent(orderId)}&amp;rating=${n}" style="display:inline-block;padding:0 6px;font-size:30px;line-height:1;text-decoration:none;color:#F59E0B;">&#9733;</a>`
+  return `
+    <div style="background:#FFF8FC;border:1px solid #FFE4EF;border-radius:12px;padding:18px 20px;margin:24px 0;text-align:center;">
+      <div style="font-size:15px;font-weight:700;color:#4A3040;margin-bottom:2px;">How did we do?</div>
+      <div style="font-size:13px;color:#9C7A8E;margin-bottom:10px;">Tap a star &mdash; you can add a note on the next page.</div>
+      <div>${[1, 2, 3, 4, 5].map(star).join('')}</div>
+    </div>`
+}
+
 export interface DeliveredEmail {
   orderId: string
   customerName: string
@@ -386,6 +398,8 @@ export interface DeliveredEmail {
   askHowTheyFoundUs: boolean
   /** False when this customer has already been rewarded once. */
   rewardAvailable: boolean
+  /** False once they've already rated this order. */
+  askFeedback?: boolean
 }
 
 export function deliveredHTML(d: DeliveredEmail): string {
@@ -414,6 +428,8 @@ export function deliveredHTML(d: DeliveredEmail): string {
         </p>
 
         ${offer}
+
+        ${d.askFeedback === false ? '' : starRow(d.orderId)}
 
         <div style="text-align:center;margin:26px 0 6px;">
           <a href="${SITE_URL}/shop" style="display:inline-block;background:#EC4899;color:#fff;text-decoration:none;padding:13px 30px;border-radius:50px;font-size:15px;font-weight:700;">Send flowers again</a>

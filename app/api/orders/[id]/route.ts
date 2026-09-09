@@ -75,7 +75,7 @@ export async function PATCH(req: Request, { params }: { params: Promise<{ id: st
   // transition, not every time an already-delivered order is touched.
   const { data: before } = await supabase
     .from('cf_orders')
-    .select('status, customer_id, sender_name, sender_email, recipient_name, heard_from')
+    .select('status, customer_id, sender_name, sender_email, recipient_name, heard_from, feedback_rating')
     .eq('id', id)
     .maybeSingle()
 
@@ -117,6 +117,7 @@ export async function PATCH(req: Request, { params }: { params: Promise<{ id: st
       rewardExpiresAt: reward?.expiresAt,
       askHowTheyFoundUs: !before.heard_from,
       rewardAvailable,
+      askFeedback: !before.feedback_rating,
     })
   }
 

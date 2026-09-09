@@ -15,6 +15,8 @@ interface Row {
   source: string | null
   detail: string | null
   answeredAt: string | null
+  rating: number | null
+  comment: string | null
 }
 
 interface Report {
@@ -34,7 +36,7 @@ type PeriodKey = typeof PERIODS[number]['key']
 /** RFC 4180: quote every field, double any embedded quote. */
 function toCSV(rows: Row[]): string {
   const cell = (v: unknown) => `"${String(v ?? '').replace(/"/g, '""')}"`
-  const header = ['Order', 'Order date', 'Customer', 'Email', 'Order total (USD)', 'Source', 'Detail', 'Answered at']
+  const header = ['Order', 'Order date', 'Customer', 'Email', 'Order total (USD)', 'Source', 'Detail', 'Answered at', 'Rating', 'Feedback']
   const body = rows.map(r => [
     `#${r.id.slice(0, 8)}`,
     r.shopDate,
@@ -44,6 +46,8 @@ function toCSV(rows: Row[]): string {
     r.source ? sourceLabel(r.source) : 'No answer',
     r.detail || '',
     r.answeredAt || '',
+    r.rating ?? '',
+    r.comment || '',
   ].map(cell).join(','))
   return [header.map(cell).join(','), ...body].join('\r\n')
 }
@@ -83,6 +87,10 @@ export default function AdminSurvey() {
   }, [data, period, from, to, custom])
 
   const answered = filtered.filter(r => r.source)
+  const rated = filtered.filter(r => r.rating)
+  const avgRating = rated.length
+    ? rated.reduce((sum, r) => sum + (r.rating || 0), 0) / rated.length
+    : 0
 
   const breakdown = useMemo(() => {
     return SOURCES.map(src => {
@@ -158,7 +166,11 @@ export default function AdminSurvey() {
 
       <div style={{ fontSize: 12, color: '#9C7A8E', marginBottom: 20 }}>
         {answered.length} of {filtered.length} paid orders answered
-        {filtered.length > 0 && ` (${rate.toFixed(0)}%)`} &middot; dates are {data.timeZoneLabel}
+        {filtered.length > 0 && ` (${rate.toFixed(0)}%)`}
+        {rated.length > 0 && (
+          <> &middot; <strong style={{ color: '#F59E0B' }}>★ {avgRating.toFixed(1)}</strong> average from {rated.length} rating{rated.length === 1 ? '' : 's'}</>
+        )}
+        {' '}&middot; dates are {data.timeZoneLabel}
       </div>
 
       {/* Breakdown */}
@@ -201,6 +213,7 @@ export default function AdminSurvey() {
                 <th>Customer</th>
                 <th>Order total</th>
                 <th>How they found us</th>
+                <th>Feedback</th>
               </tr>
             </thead>
             <tbody>
@@ -221,6 +234,24 @@ export default function AdminSurvey() {
                     {r.source
                       ? <span style={{ fontSize: 13, color: '#4A3040' }}>{sourceEmoji(r.source)} {sourceLabel(r.source, r.detail)}</span>
                       : <span style={{ fontSize: 12, color: '#C9A0B4' }}>No answer</span>}
+                  </td>
+                  <td>
+                    {r.rating ? (
+                      <div>
+                        <span style={{ color: '#F59E0B', fontSize: 14, letterSpacing: 1 }}>
+                          {'\u2605'.repeat(r.rating)}<span style={{ color: '#E5D3DC' }}>{'\u2605'.repeat(5 - r.rating)}</span>
+                        </span>
+                        {r.comment && (
+                          <div style={{ fontSize: 12, color: '#7A5A6A', marginTop: 4, maxWidth: 280, fontStyle: 'italic' }}>
+                            &ldquo;{r.comment}&rdquo;
+                          </div>
+                        )}
+                      </div>
+                    ) : r.comment ? (
+                      <div style={{ fontSize: 12, color: '#7A5A6A', maxWidth: 280, fontStyle: 'italic' }}>&ldquo;{r.comment}&rdquo;</div>
+                    ) : (
+                      <span style={{ fontSize: 12, color: '#C9A0B4' }}>&mdash;</span>
+                    )}
                   </td>
                 </tr>
               ))}

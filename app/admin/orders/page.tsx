@@ -143,12 +143,31 @@ export default function AdminOrders() {
                     )}
                   </td>
                   <td>
-                    {o.items?.map((item, i) => (
-                      <div key={i} style={{ fontSize: 12, lineHeight: 1.6 }}>
-                        {item.sku && <span style={{ fontFamily: 'monospace', color: '#EC4899', fontWeight: 600 }}>[{item.sku}]</span>}{' '}
-                        {item.title} x{item.quantity}
-                      </div>
-                    ))}
+                    {o.items?.map((item, i) => {
+                      const line = (
+                        <>
+                          {item.sku && <span style={{ fontFamily: 'monospace', color: '#EC4899', fontWeight: 600 }}>[{item.sku}]</span>}{' '}
+                          {item.title} x{item.quantity}
+                        </>
+                      )
+                      // Link through to the product when we still know which one
+                      // it was — product_id is nullable on older items.
+                      return item.product_id ? (
+                        <Link
+                          key={i}
+                          href={`/shop/${item.product_id}`}
+                          target="_blank"
+                          title={`Open ${item.title}`}
+                          style={{ display: 'block', fontSize: 12, lineHeight: 1.6, color: '#4A3040', textDecoration: 'none' }}
+                          onMouseEnter={e => { e.currentTarget.style.textDecoration = 'underline' }}
+                          onMouseLeave={e => { e.currentTarget.style.textDecoration = 'none' }}
+                        >
+                          {line}
+                        </Link>
+                      ) : (
+                        <div key={i} style={{ fontSize: 12, lineHeight: 1.6 }}>{line}</div>
+                      )
+                    })}
                     {o.card_message && (
                       <div style={{ fontSize: 11, color: '#9C7A8E', marginTop: 4, fontStyle: 'italic', background: '#FFF5F9', padding: '4px 8px', borderRadius: 6 }}>
                         💌 &quot;{o.card_message}&quot;

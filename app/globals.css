@@ -481,7 +481,9 @@ body {
   .timeline-bar { display: none; }
 }
 
-/* Sitewide reviews strip (above the footer) */
-.reviews-strip { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; }
-@media (max-width: 900px) { .reviews-strip { grid-template-columns: repeat(2, 1fr); } }
-@media (max-width: 560px) { .reviews-strip { grid-template-columns: 1fr; } }
+/* Sitewide reviews strip (above the footer).
+   Flex rather than a fixed grid: with one or two reviews a 4-column grid
+   leaves the row hugging the left edge, which reads as broken. */
+.reviews-strip { display: flex; flex-wrap: wrap; justify-content: center; gap: 16px; }
+.reviews-strip > * { flex: 1 1 240px; max-width: 300px; min-width: 240px; }
+@media (max-width: 560px) { .reviews-strip > * { min-width: 0; max-width: none; flex-basis: 100%; } }

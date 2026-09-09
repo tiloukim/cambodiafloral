@@ -133,6 +133,15 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
           ))}
         </nav>
         <div className="admin-sidebar-footer">
+          <a
+            href="https://webmail.cambodiafloral.com"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="admin-nav-item"
+            onClick={() => setSidebarOpen(false)}
+          >
+            <span>&#128231;</span> Webmail
+          </a>
           <Link href="/" className="admin-nav-item" onClick={() => setSidebarOpen(false)}>
             <span>&#127968;</span> Back to Store
           </Link>
@@ -150,6 +159,16 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
             {pathname === '/admin' ? 'Dashboard' : pathname === '/admin/orders' ? 'Orders' : pathname === '/admin/products' ? 'Products' : pathname === '/admin/promo-codes' ? 'Promo Codes' : pathname === '/admin/reviews' ? 'Reviews' : pathname === '/admin/customers' ? 'Customers' : pathname === '/admin/messages' ? 'Messages' : pathname.startsWith('/admin/orders/') ? 'Order Detail' : 'Admin'}
           </h2>
           <div className="admin-header-actions">
+            <a
+              href="https://webmail.cambodiafloral.com"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="admin-mail-btn"
+              title="Check mail at cambodiafloral.com"
+            >
+              <span>&#9993;&#65039;</span>
+              <span className="admin-mail-label">Mail</span>
+            </a>
             <div style={{ position: 'relative' }}>
               <button className="admin-notif-btn" onClick={() => setNotifOpen(!notifOpen)}>
                 &#128276;

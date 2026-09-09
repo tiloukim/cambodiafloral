@@ -44,6 +44,9 @@ body {
 .admin-page-title { font-size: 18px; font-weight: 700; color: #4A3040; }
 .admin-content { padding: 24px 32px; }
 .admin-header-actions { display: flex; align-items: center; gap: 12px; }
+.admin-mail-btn { display: inline-flex; align-items: center; gap: 6px; background: none; border: 1px solid #FFD6E8; border-radius: 10px; padding: 8px 12px; font-size: 16px; line-height: 1; cursor: pointer; text-decoration: none; color: #4A3040; }
+.admin-mail-btn:hover { background: #FFF0F5; }
+.admin-mail-btn .admin-mail-label { font-size: 12px; font-weight: 600; }
 .admin-notif-btn { position: relative; background: none; border: 1px solid #FFD6E8; border-radius: 10px; padding: 8px; font-size: 18px; cursor: pointer; }
 .admin-notif-badge { position: absolute; top: -4px; right: -4px; background: #EC4899; color: #fff; font-size: 10px; font-weight: 700; width: 18px; height: 18px; border-radius: 50%; display: flex; align-items: center; justify-content: center; }
 .admin-notif-panel { position: absolute; top: 44px; right: 0; width: 320px; background: #fff; border: 1px solid #FFD6E8; border-radius: 12px; box-shadow: 0 8px 24px rgba(0,0,0,.08); z-index: 50; }
@@ -110,6 +113,8 @@ body {
   .admin-main { margin-left: 0; }
   .admin-header { padding: 16px 16px; }
   .admin-content { padding: 16px; }
+  .admin-mail-btn { padding: 8px; }
+  .admin-mail-btn .admin-mail-label { display: none; }
 }
 
 /* Navbar mobile */

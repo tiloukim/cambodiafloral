@@ -46,7 +46,7 @@ export default async function ProductPage({ params }: Props) {
   const supabase = createServiceClient()
   const { data: product } = await supabase
     .from('cf_products')
-    .select('title, description, price, category, occasion, image_url')
+    .select('sku, title, description, price, category, occasion, image_url')
     .eq('id', id)
     .eq('is_active', true)
     .single()
@@ -85,6 +85,7 @@ export default async function ProductPage({ params }: Props) {
     '@context': 'https://schema.org',
     '@type': 'Product',
     name: product.title,
+    ...(product.sku ? { sku: product.sku, mpn: product.sku } : {}),
     description: product.description || `${product.title} - Beautiful ${product.category} from Cambodia Floral`,
     image: product.image_url || 'https://cambodiafloral.com/og-image.png',
     url: `https://cambodiafloral.com/shop/${id}`,

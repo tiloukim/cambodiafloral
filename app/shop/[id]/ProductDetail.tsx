@@ -175,6 +175,17 @@ export default function ProductDetail() {
               {product.title}
             </h1>
 
+            {product.sku && (
+              <div style={{ marginBottom: 12 }}>
+                <span style={{ fontSize: 12, fontWeight: 600, color: '#9C7A8E', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
+                  Item #:
+                </span>
+                <span style={{ marginLeft: 8, fontFamily: 'monospace', fontSize: 14, fontWeight: 700, color: '#EC4899' }}>
+                  {product.sku}
+                </span>
+              </div>
+            )}
+
             <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 24 }}>
               <span style={{ fontSize: 28, fontWeight: 700, color: '#DB2777' }}>
                 ${product.price.toFixed(2)}

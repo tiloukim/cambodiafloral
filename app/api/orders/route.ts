@@ -29,7 +29,14 @@ export async function GET(req: Request) {
 
     const { data, error } = await query
     if (error) return NextResponse.json({ error: error.message }, { status: 500 })
-    return NextResponse.json(data)
+
+    // Map items for frontend
+    const adminOrders = (data || []).map(o => ({
+      ...o,
+      items: o.cf_order_items,
+    }))
+
+    return NextResponse.json(adminOrders)
   }
 
   // User: get their own orders

@@ -23,8 +23,11 @@ export async function GET(req: Request) {
     const limit = Math.min(Number(searchParams.get('limit')) || 8, 24)
     const { data, error } = await supabase
       .from('cf_reviews')
-      .select('id, author_name, rating, title, body, created_at, product_id, cf_products(title)')
+      .select('id, author_name, rating, title, body, created_at, product_id, cf_products!inner(title, is_active)')
+      // Only products a visitor can actually open. A review card linking to a
+      // hidden product is a dead end dressed up as social proof.
       .eq('approved', true)
+      .eq('cf_products.is_active', true)
       .order('created_at', { ascending: false })
       .limit(limit)
     if (error) return NextResponse.json({ error: error.message }, { status: 500 })

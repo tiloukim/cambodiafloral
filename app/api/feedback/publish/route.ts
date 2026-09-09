@@ -41,6 +41,19 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: 'That product was not part of this order' }, { status: 400 })
   }
 
+  // A hidden product has no page to show the review on, so publishing there
+  // would look like success and change nothing a customer can see.
+  const { data: product } = await supabase
+    .from('cf_products')
+    .select('is_active, title')
+    .eq('id', product_id)
+    .maybeSingle()
+  if (!product?.is_active) {
+    return NextResponse.json({
+      error: `"${product?.title || 'That product'}" is hidden, so a review on it wouldn't appear anywhere. Make it active first, or publish onto another item from this order.`,
+    }, { status: 400 })
+  }
+
   // approved: true — an admin is publishing it deliberately, right now.
   const { data, error } = await supabase
     .from('cf_reviews')

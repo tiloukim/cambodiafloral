@@ -18,6 +18,7 @@ export default function SurveyClient() {
   // A link that names an order we don't have can never succeed, so it gets its
   // own dead end rather than a "try again" that would only fail identically.
   const [badLink, setBadLink] = useState(false)
+  const [reward, setReward] = useState<{ code: string; isNew: boolean } | null>(null)
   const [detail, setDetail] = useState('')
 
   const submit = useCallback(async (source: string, detailText = '') => {
@@ -30,7 +31,11 @@ export default function SurveyClient() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ order_id: orderId, source, detail: detailText }),
       })
-      if (res.ok) setSaved(sourceLabel(source, detailText))
+      if (res.ok) {
+        const body = await res.json().catch(() => ({}))
+        setSaved(sourceLabel(source, detailText))
+        setReward(body.reward || null)
+      }
       else if (res.status === 404 || res.status === 400) setBadLink(true)
       else setError('Sorry, we could not save that. Please try again in a moment.')
     } catch {
@@ -76,6 +81,20 @@ export default function SurveyClient() {
               You told us you found us through <strong style={{ color: '#EC4899' }}>{saved}</strong>.
               That genuinely helps a small shop like ours.
             </p>
+            {reward && (
+              <div style={{ margin: '22px 0 4px', background: 'linear-gradient(135deg,#FFF0F5,#FFE4EF)', border: '1px solid #FFD6E8', borderRadius: 14, padding: '20px 18px' }}>
+                <div style={{ fontSize: 12, fontWeight: 700, color: '#EC4899', textTransform: 'uppercase', letterSpacing: 1 }}>
+                  {reward.isNew ? 'Your thank-you gift' : 'Your thank-you code'}
+                </div>
+                <div style={{ fontSize: 14, color: '#7A5A6A', margin: '6px 0 12px' }}>5% off your next order</div>
+                <div style={{ display: 'inline-block', background: '#fff', border: '2px dashed #EC4899', borderRadius: 10, padding: '10px 20px', fontFamily: 'monospace', fontSize: 19, fontWeight: 800, color: '#4A3040', letterSpacing: 2 }}>
+                  {reward.code}
+                </div>
+                <div style={{ fontSize: 12, color: '#9C7A8E', marginTop: 10 }}>
+                  {reward.isNew ? "We've emailed it to you as well. " : 'You earned this earlier. '}Enter it at checkout.
+                </div>
+              </div>
+            )}
             <div style={{ marginTop: 22, display: 'flex', gap: 10, justifyContent: 'center', flexWrap: 'wrap' }}>
               <Link href={`/track?order=${orderId}`} style={{ background: '#EC4899', color: '#fff', padding: '11px 24px', borderRadius: 50, fontSize: 14, fontWeight: 700, textDecoration: 'none' }}>Track your order</Link>
               <Link href="/shop" style={{ background: '#fff', color: '#EC4899', border: '1px solid #FFD6E8', padding: '11px 24px', borderRadius: 50, fontSize: 14, fontWeight: 700, textDecoration: 'none' }}>Keep browsing</Link>

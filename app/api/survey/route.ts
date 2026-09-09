@@ -1,6 +1,8 @@
 import { NextResponse } from 'next/server'
 import { createServiceClient } from '@/lib/supabase/server'
 import { isSourceKey, sourceLabel } from '@/lib/attribution'
+import { grantSurveyReward } from '@/lib/rewards'
+import { sendRewardEmail } from '@/lib/notify'
 
 // Records "how did you hear about us?" for one order. Public on purpose: the
 // answer arrives from a one-click link in the confirmation email, where the
@@ -25,7 +27,7 @@ export async function POST(req: Request) {
 
   const { data: order } = await supabase
     .from('cf_orders')
-    .select('id, heard_from')
+    .select('id, heard_from, customer_id, sender_name, sender_email')
     .eq('id', order_id)
     .maybeSingle()
 
@@ -47,5 +49,24 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: 'Could not save your answer' }, { status: 500 })
   }
 
-  return NextResponse.json({ ok: true, label: sourceLabel(source, detail) })
+  // Thank them with a one-per-customer discount on their next order. A repeat
+  // answer returns the code they already have rather than minting another.
+  let reward: Awaited<ReturnType<typeof grantSurveyReward>> = null
+  if (order.customer_id) {
+    reward = await grantSurveyReward(supabase, order.customer_id)
+    if (reward?.isNew) {
+      await sendRewardEmail({
+        customerName: order.sender_name,
+        customerEmail: order.sender_email,
+        code: reward.code,
+        expiresAt: reward.expiresAt,
+      })
+    }
+  }
+
+  return NextResponse.json({
+    ok: true,
+    label: sourceLabel(source, detail),
+    reward: reward ? { code: reward.code, isNew: reward.isNew } : null,
+  })
 }

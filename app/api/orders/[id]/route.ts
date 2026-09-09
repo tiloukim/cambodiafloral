@@ -1,4 +1,6 @@
 import { NextResponse } from 'next/server'
+import { sendDeliveredEmail } from '@/lib/notify'
+import { grantSurveyReward } from '@/lib/rewards'
 import { createClient, createServiceClient } from '@/lib/supabase/server'
 import { isAdmin } from '@/lib/admin'
 
@@ -69,6 +71,14 @@ export async function PATCH(req: Request, { params }: { params: Promise<{ id: st
   if (tracking_number !== undefined) updates.tracking_number = tracking_number
   if (status === 'delivered') updates.delivered_at = new Date().toISOString()
 
+  // Read the current state first: the delivered email must fire on the
+  // transition, not every time an already-delivered order is touched.
+  const { data: before } = await supabase
+    .from('cf_orders')
+    .select('status, customer_id, sender_name, sender_email, recipient_name, heard_from')
+    .eq('id', id)
+    .maybeSingle()
+
   const { data, error } = await supabase
     .from('cf_orders')
     .update(updates)
@@ -77,6 +87,38 @@ export async function PATCH(req: Request, { params }: { params: Promise<{ id: st
     .single()
 
   if (error) return NextResponse.json({ error: error.message }, { status: 500 })
+
+  if (status === 'delivered' && before && before.status !== 'delivered') {
+    // Answering the survey earns a one-per-customer discount. If they already
+    // answered, they've earned it now; if not, the email asks and offers it.
+    let reward: Awaited<ReturnType<typeof grantSurveyReward>> = null
+    let rewardAvailable = true
+
+    if (before.customer_id) {
+      const { data: customer } = await supabase
+        .from('cf_customers')
+        .select('survey_reward_code')
+        .eq('id', before.customer_id)
+        .maybeSingle()
+      rewardAvailable = !customer?.survey_reward_code
+
+      if (before.heard_from) {
+        reward = await grantSurveyReward(supabase, before.customer_id)
+      }
+    }
+
+    await sendDeliveredEmail({
+      orderId: id,
+      customerName: before.sender_name,
+      customerEmail: before.sender_email,
+      recipientName: before.recipient_name,
+      deliveredOn: updates.delivered_at,
+      rewardCode: reward?.isNew ? reward.code : undefined,
+      rewardExpiresAt: reward?.expiresAt,
+      askHowTheyFoundUs: !before.heard_from,
+      rewardAvailable,
+    })
+  }
 
   // Create notification for status change
   if (status) {

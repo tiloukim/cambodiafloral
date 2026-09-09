@@ -1,5 +1,6 @@
 import { formatShopDate, SHOP_TIME_ZONE_LABEL } from '@/lib/timezone'
 import { SOURCES } from '@/lib/attribution'
+import { REWARD_PERCENT, REWARD_VALID_DAYS } from '@/lib/rewards'
 
 const SITE_URL = 'https://cambodiafloral.com'
 
@@ -289,16 +290,17 @@ export function confirmationHTML(d: CustomerConfirmation): string {
 }
 
 /**
- * Order confirmation to the customer, sent once payment is captured.
- * Never throws: a receipt must not be able to fail a paid order.
+ * Send one email to a customer. Never throws — customer mail is a courtesy on
+ * top of an already-completed action (a captured payment, a delivered order),
+ * and must never be able to fail it.
  */
-export async function sendOrderConfirmation(d: CustomerConfirmation) {
+async function sendCustomerEmail(to: string, subject: string, html: string, kind: string) {
   const { RESEND_API_KEY } = getEnv()
   if (!RESEND_API_KEY) {
-    console.log('[notify] no RESEND_API_KEY, skipping customer confirmation')
+    console.log(`[notify] no RESEND_API_KEY, skipping customer ${kind} email`)
     return
   }
-  if (!d.customerEmail) return
+  if (!to) return
 
   try {
     const res = await fetch('https://api.resend.com/emails', {
@@ -309,15 +311,151 @@ export async function sendOrderConfirmation(d: CustomerConfirmation) {
       },
       body: JSON.stringify({
         from: 'Cambodia Floral <orders@cambodiafloral.com>',
-        to: [d.customerEmail],
+        to: [to],
         reply_to: 'orders@cambodiafloral.com',
-        subject: `Order confirmed #${d.orderId.slice(0, 8)} — thank you! 🌸`,
-        html: confirmationHTML(d),
+        subject,
+        html,
       }),
     })
     const result = await res.json()
-    console.log('[notify] customer confirmation:', res.status, JSON.stringify(result))
+    console.log(`[notify] customer ${kind} email:`, res.status, JSON.stringify(result))
   } catch (err) {
-    console.error('[notify] customer confirmation failed:', err)
+    console.error(`[notify] customer ${kind} email failed:`, err)
   }
+}
+
+/** Order confirmation to the customer, sent once payment is captured. Never throws. */
+export async function sendOrderConfirmation(d: CustomerConfirmation) {
+  await sendCustomerEmail(
+    d.customerEmail,
+    `Order confirmed #${d.orderId.slice(0, 8)} — thank you! 🌸`,
+    confirmationHTML(d),
+    'confirmation',
+  )
+}
+
+/** The reward code, shown the same way in every email that carries it. */
+function rewardBlock(code: string, expiresAt?: string): string {
+  const expiry = expiresAt
+    ? formatShopDate(expiresAt.slice(0, 10))
+    : `${REWARD_VALID_DAYS} days from today`
+  return `
+    <div style="background:linear-gradient(135deg,#FFF0F5,#FFE4EF);border:1px solid #FFD6E8;border-radius:14px;padding:22px 20px;margin:24px 0;text-align:center;">
+      <div style="font-size:13px;font-weight:700;color:#EC4899;text-transform:uppercase;letter-spacing:1px;">Your thank-you gift</div>
+      <div style="font-size:15px;color:#7A5A6A;margin:8px 0 14px;">${REWARD_PERCENT}% off your next order</div>
+      <div style="display:inline-block;background:#fff;border:2px dashed #EC4899;border-radius:10px;padding:12px 22px;font-family:monospace;font-size:20px;font-weight:800;color:#4A3040;letter-spacing:2px;">${esc(code)}</div>
+      <div style="font-size:12px;color:#9C7A8E;margin-top:12px;">Enter it at checkout. Valid until ${expiry}.</div>
+    </div>`
+}
+
+function surveyButtons(orderId: string, intro: string): string {
+  return `
+    <div style="background:#FFF8FC;border:1px solid #FFE4EF;border-radius:12px;padding:18px 20px;margin:24px 0;">
+      <div style="font-size:15px;font-weight:700;color:#4A3040;margin-bottom:4px;">How did you find us?</div>
+      <div style="font-size:13px;color:#9C7A8E;margin-bottom:14px;">${intro}</div>
+      ${SOURCES.map(src => `<a href="${SITE_URL}/survey?order=${encodeURIComponent(orderId)}&amp;source=${src.key}" style="display:inline-block;margin:0 6px 8px 0;padding:8px 14px;background:#fff;border:1px solid #FFD6E8;border-radius:50px;text-decoration:none;font-size:13px;font-weight:600;color:#4A3040;">${src.emoji} ${src.label}</a>`).join('')}
+    </div>`
+}
+
+export interface DeliveredEmail {
+  orderId: string
+  customerName: string
+  customerEmail: string
+  recipientName: string
+  deliveredOn?: string
+  /** Set when the customer has already answered the survey and earned the code. */
+  rewardCode?: string
+  rewardExpiresAt?: string
+  /** True when they haven't answered yet, so the email should ask. */
+  askHowTheyFoundUs: boolean
+  /** False when this customer has already been rewarded once. */
+  rewardAvailable: boolean
+}
+
+export function deliveredHTML(d: DeliveredEmail): string {
+  const offer = d.rewardCode
+    ? rewardBlock(d.rewardCode, d.rewardExpiresAt)
+    : d.askHowTheyFoundUs
+      ? surveyButtons(
+          d.orderId,
+          d.rewardAvailable
+            ? `One tap, and we'll send you <strong>${REWARD_PERCENT}% off your next order</strong> as a thank-you.`
+            : "One tap. It helps us know where to reach people like you.",
+        )
+      : ''
+
+  return `
+  <div style="background:#FFF5F9;padding:24px 12px;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;">
+    <div style="max-width:560px;margin:0 auto;background:#fff;border-radius:16px;overflow:hidden;border:1px solid #FFE4EF;">
+      <div style="background:linear-gradient(135deg,#FFF0F5,#FFE4EF);padding:28px 24px;text-align:center;">
+        <div style="font-size:13px;font-weight:700;color:#EC4899;letter-spacing:1px;text-transform:uppercase;">Cambodia Floral</div>
+        <div style="font-size:40px;margin:10px 0 4px;">&#127804;</div>
+        <h1 style="margin:6px 0 4px;font-size:24px;color:#4A3040;">Delivered!</h1>
+        <p style="margin:0;font-size:14px;color:#7A5A6A;">
+          Your flowers reached ${esc(d.recipientName)}${d.deliveredOn ? ` on ${formatShopDate(d.deliveredOn)}` : ''}.
+        </p>
+      </div>
+
+      <div style="padding:24px;">
+        <p style="font-size:15px;color:#4A3040;line-height:1.7;margin:0 0 6px;">Thank you, ${esc(d.customerName)}.</p>
+        <p style="font-size:14px;color:#7A5A6A;line-height:1.7;margin:0;">
+          We hope it made their day. Order #${d.orderId.slice(0, 8)} is complete &mdash; thank you for trusting a small shop in Phnom Penh with something that mattered.
+        </p>
+
+        ${offer}
+
+        <div style="text-align:center;margin:26px 0 6px;">
+          <a href="${SITE_URL}/shop" style="display:inline-block;background:#EC4899;color:#fff;text-decoration:none;padding:13px 30px;border-radius:50px;font-size:15px;font-weight:700;">Send flowers again</a>
+        </div>
+      </div>
+
+      <div style="background:#FFF8FC;padding:18px 24px;text-align:center;border-top:1px solid #FFE4EF;">
+        <p style="margin:0 0 6px;font-size:12px;color:#9C7A8E;line-height:1.6;">Questions? Just reply to this email &mdash; it reaches us directly.</p>
+        <p style="margin:0;font-size:11px;color:#C9A0B4;">Cambodia Floral &middot; Phnom Penh, Cambodia</p>
+      </div>
+    </div>
+  </div>`
+}
+
+/** "Your order was delivered" — sent when an admin marks the order delivered. Never throws. */
+export async function sendDeliveredEmail(d: DeliveredEmail) {
+  await sendCustomerEmail(
+    d.customerEmail,
+    d.rewardCode
+      ? `Delivered! And here's ${REWARD_PERCENT}% off your next order 🌸`
+      : `Your flowers were delivered 🌸`,
+    deliveredHTML(d),
+    'delivered',
+  )
+}
+
+export interface RewardEmail {
+  customerName: string
+  customerEmail: string
+  code: string
+  expiresAt?: string
+}
+
+/** "Thanks for answering — here's your code." Never throws. */
+export async function sendRewardEmail(d: RewardEmail) {
+  const html = `
+  <div style="background:#FFF5F9;padding:24px 12px;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;">
+    <div style="max-width:560px;margin:0 auto;background:#fff;border-radius:16px;overflow:hidden;border:1px solid #FFE4EF;">
+      <div style="background:linear-gradient(135deg,#FFF0F5,#FFE4EF);padding:28px 24px;text-align:center;">
+        <div style="font-size:13px;font-weight:700;color:#EC4899;letter-spacing:1px;text-transform:uppercase;">Cambodia Floral</div>
+        <h1 style="margin:10px 0 4px;font-size:24px;color:#4A3040;">Thank you, ${esc(d.customerName)}!</h1>
+        <p style="margin:0;font-size:14px;color:#7A5A6A;">Knowing how you found us genuinely helps.</p>
+      </div>
+      <div style="padding:8px 24px 24px;">
+        ${rewardBlock(d.code, d.expiresAt)}
+        <div style="text-align:center;margin:6px 0;">
+          <a href="${SITE_URL}/shop" style="display:inline-block;background:#EC4899;color:#fff;text-decoration:none;padding:13px 30px;border-radius:50px;font-size:15px;font-weight:700;">Browse flowers</a>
+        </div>
+      </div>
+      <div style="background:#FFF8FC;padding:18px 24px;text-align:center;border-top:1px solid #FFE4EF;">
+        <p style="margin:0;font-size:11px;color:#C9A0B4;">Cambodia Floral &middot; Phnom Penh, Cambodia</p>
+      </div>
+    </div>
+  </div>`
+  await sendCustomerEmail(d.customerEmail, `Your ${REWARD_PERCENT}% thank-you code 🌸`, html, 'reward')
 }

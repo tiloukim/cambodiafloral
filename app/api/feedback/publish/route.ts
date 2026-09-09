@@ -30,6 +30,13 @@ export async function POST(req: Request) {
   if (!order.feedback_rating) {
     return NextResponse.json({ error: 'This order has no rating to publish' }, { status: 400 })
   }
+  // Seeded test orders carry invented customers. Publishing one would put a
+  // fabricated review on the storefront under a person who doesn't exist.
+  if ((order.sender_name || '').trim().toUpperCase().startsWith('TEST')) {
+    return NextResponse.json({
+      error: 'This is a test order, so its feedback is not a real customer review and cannot be published.',
+    }, { status: 400 })
+  }
 
   const { data: item } = await supabase
     .from('cf_order_items')

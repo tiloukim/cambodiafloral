@@ -3,6 +3,7 @@ import { createServiceClient } from '@/lib/supabase/server'
 import { isAdmin } from '@/lib/admin'
 import { orderFee, roundCents } from '@/lib/fees'
 import { shopDateKey, shopToday } from '@/lib/timezone'
+import { SOURCES } from '@/lib/attribution'
 
 // Money is only earned once an order is captured. 'pending' was never paid for
 // and 'cancelled' was refunded or dropped, so neither counts as revenue.
@@ -13,6 +14,7 @@ interface OrderRow {
   status: string
   total: number
   payment_fee?: number | null
+  heard_from?: string | null
   created_at: string
 }
 
@@ -66,6 +68,21 @@ export async function GET() {
   const yearProfit = summarize(inPeriod(today.slice(0, 4)))
   const allTime = summarize(lines)
 
+  // How customers found us, counted over paid orders and ranked by revenue —
+  // an answer that brings $400 of orders matters more than one that brings $40.
+  const paidOrders = orders.filter(o => PAID_STATUSES.has(o.status))
+  const answered = paidOrders.filter(o => o.heard_from)
+  const heardFrom = SOURCES.map(src => {
+    const matching = answered.filter(o => o.heard_from === src.key)
+    return {
+      key: src.key,
+      label: src.label,
+      emoji: src.emoji,
+      orders: matching.length,
+      revenue: roundCents(matching.reduce((sum, o) => sum + (Number(o.total) || 0), 0)),
+    }
+  }).filter(r => r.orders > 0).sort((a, b) => b.revenue - a.revenue)
+
   const { count: customerCount } = await supabase
     .from('cf_customers')
     .select('*', { count: 'exact', head: true })
@@ -98,6 +115,9 @@ export async function GET() {
     confirmedOrders: orders.filter(o => o.status === 'confirmed').length,
     preparingOrders: orders.filter(o => o.status === 'preparing').length,
     deliveredOrders: orders.filter(o => o.status === 'delivered').length,
+    heardFrom,
+    heardFromAnswered: answered.length,
+    heardFromAsked: paidOrders.length,
     customerCount: customerCount || 0,
     productCount: productCount || 0,
     recentOrders: recentOrders || [],

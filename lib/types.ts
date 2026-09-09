@@ -57,6 +57,10 @@ export interface Order {
   delivery_notes: string | null
   card_message: string | null
   tracking_number: string | null
+  discount: number | null
+  promo_code: string | null
+  heard_from: string | null
+  heard_from_detail: string | null
   delivered_at: string | null
   created_at: string
   updated_at: string

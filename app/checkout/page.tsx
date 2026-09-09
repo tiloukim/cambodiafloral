@@ -7,6 +7,7 @@ import Navbar from '@/components/Navbar'
 import Footer from '@/components/Footer'
 import { useAuth } from '@/lib/auth-context'
 import { useCart } from '@/lib/cart-context'
+import { SOURCES } from '@/lib/attribution'
 import {
   shopToday, formatShopDate, earliestDeliveryDate, isPastSameDayCutoff,
   shopTimeLabel, SHOP_TIME_ZONE_LABEL, SAME_DAY_CUTOFF_LABEL,
@@ -42,6 +43,8 @@ function CheckoutContent() {
 
   const [deliveryDate, setDeliveryDate] = useState('')
   const [deliveryTime, setDeliveryTime] = useState('')
+  const [heardFrom, setHeardFrom] = useState('')
+  const [heardFromDetail, setHeardFromDetail] = useState('')
 
   // Earliest selectable delivery date, resolved in Phnom Penh rather than the
   // sender's timezone: a US sender ordering Monday afternoon is already into
@@ -121,12 +124,14 @@ function CheckoutContent() {
     senderName, senderEmail, senderPhone, senderCountry,
     recipientName, recipientPhone, recipientAddress, recipientCity,
     deliveryDate, deliveryTime, cardMessage, items,
+    heardFrom, heardFromDetail,
     promoCode: promo?.code || null,
   })
   formRef.current = {
     senderName, senderEmail, senderPhone, senderCountry,
     recipientName, recipientPhone, recipientAddress, recipientCity,
     deliveryDate, deliveryTime, cardMessage, items,
+    heardFrom, heardFromDetail,
     promoCode: promo?.code || null,
   }
 
@@ -176,6 +181,8 @@ function CheckoutContent() {
           recipient_city: f.recipientCity,
           delivery_date: f.deliveryDate || null,
           delivery_time: f.deliveryTime || null,
+          heard_from: f.heardFrom || null,
+          heard_from_detail: f.heardFrom === 'other' ? (f.heardFromDetail || null) : null,
           card_message: f.cardMessage || null,
           promo_code: f.promoCode,
           payment_method: 'paypal',
@@ -386,6 +393,19 @@ function CheckoutContent() {
                     )}
                   </div>
                 </div>
+                <div>
+                  <label style={labelStyle}>How did you hear about us? <span style={{ fontWeight: 400, color: '#C9A0B4' }}>(optional)</span></label>
+                  <select value={heardFrom} onChange={e => setHeardFrom(e.target.value)} style={inputStyle}>
+                    <option value="">Prefer not to say</option>
+                    {SOURCES.map(src => <option key={src.key} value={src.key}>{src.label}</option>)}
+                  </select>
+                </div>
+                {heardFrom === 'other' && (
+                  <div>
+                    <label style={labelStyle}>Where did you find us?</label>
+                    <input type="text" value={heardFromDetail} onChange={e => setHeardFromDetail(e.target.value)} style={inputStyle} maxLength={200} placeholder="A blog, a wedding fair, a friend's post..." />
+                  </div>
+                )}
                 <div style={{ gridColumn: '1 / -1' }}>
                   <label style={labelStyle}>Card Message</label>
                   <textarea

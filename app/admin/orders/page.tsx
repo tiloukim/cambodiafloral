@@ -5,6 +5,7 @@ import Link from 'next/link'
 import OrderStatusBadge from '@/components/OrderStatusBadge'
 import type { Order } from '@/lib/types'
 import { formatShopDate, SHOP_TIME_ZONE_LABEL } from '@/lib/timezone'
+import { sourceLabel, sourceEmoji } from '@/lib/attribution'
 
 const STATUSES = ['all', 'pending', 'confirmed', 'preparing', 'out_for_delivery', 'delivered', 'cancelled']
 
@@ -121,6 +122,11 @@ export default function AdminOrders() {
                     <div style={{ fontWeight: 600 }}>{o.sender_name}</div>
                     <div className="admin-sub-text">{o.sender_email}</div>
                     {o.sender_phone && <div className="admin-sub-text">📞 {o.sender_phone}</div>}
+                    {o.heard_from && (
+                      <div style={{ fontSize: 11, color: '#7A5A6A', marginTop: 4, background: '#FFF8FC', border: '1px solid #FFE4EF', borderRadius: 50, padding: '2px 8px', display: 'inline-block' }}>
+                        {sourceEmoji(o.heard_from)} {sourceLabel(o.heard_from, o.heard_from_detail)}
+                      </div>
+                    )}
                   </td>
                   <td>
                     {o.items?.map((item, i) => (

@@ -1,4 +1,16 @@
 import { formatShopDate, SHOP_TIME_ZONE_LABEL } from '@/lib/timezone'
+import { SOURCES } from '@/lib/attribution'
+
+const SITE_URL = 'https://cambodiafloral.com'
+
+/** Email bodies interpolate customer-supplied text, so escape it. */
+function esc(v: unknown): string {
+  return String(v ?? '')
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+}
 
 function getEnv() {
   return {
@@ -171,4 +183,141 @@ export async function notifyMessageAdmin(data: MessageNotification) {
     sendEmail(subject, html, data.customerEmail),
     sendTelegram(text),
   ])
+}
+
+export interface CustomerConfirmation {
+  orderId: string
+  customerName: string
+  customerEmail: string
+  recipientName: string
+  recipientAddress?: string
+  recipientCity: string
+  deliveryDate?: string
+  deliveryTime?: string
+  cardMessage?: string
+  items: { sku?: string | null; title: string; quantity: number; price: number }[]
+  subtotal: number
+  discount?: number
+  deliveryFee: number
+  total: number
+  askHowTheyFoundUs: boolean
+}
+
+export function confirmationHTML(d: CustomerConfirmation): string {
+  const short = d.orderId.slice(0, 8)
+  const row = (label: string, value: string, strong = false) => `
+    <tr>
+      <td style="padding:7px 0;color:#9C7A8E;font-size:13px;">${label}</td>
+      <td style="padding:7px 0;text-align:right;font-size:13px;${strong ? 'font-weight:700;color:#4A3040;' : 'color:#4A3040;'}">${value}</td>
+    </tr>`
+
+  const itemRows = d.items.map(i => `
+    <tr>
+      <td style="padding:10px 0;border-bottom:1px solid #FFE4EF;">
+        <div style="font-size:14px;font-weight:600;color:#4A3040;">${esc(i.title)}</div>
+        <div style="font-size:12px;color:#9C7A8E;">
+          ${i.sku ? `Item # <span style="font-family:monospace;color:#EC4899;font-weight:700;">${esc(i.sku)}</span> &middot; ` : ''}Qty ${i.quantity}
+        </div>
+      </td>
+      <td style="padding:10px 0;border-bottom:1px solid #FFE4EF;text-align:right;font-size:14px;font-weight:600;color:#4A3040;white-space:nowrap;">
+        $${(i.price * i.quantity).toFixed(2)}
+      </td>
+    </tr>`).join('')
+
+  // One-click attribution: each button records the answer and lands on a
+  // thank-you page, so the customer never has to fill in a form.
+  const surveyHTML = d.askHowTheyFoundUs ? `
+    <div style="background:#FFF8FC;border:1px solid #FFE4EF;border-radius:12px;padding:18px 20px;margin:24px 0;">
+      <div style="font-size:15px;font-weight:700;color:#4A3040;margin-bottom:4px;">One quick question &mdash; how did you find us?</div>
+      <div style="font-size:13px;color:#9C7A8E;margin-bottom:14px;">One tap, and it helps us a lot. We're a small shop in Phnom Penh.</div>
+      ${SOURCES.map(src => `<a href="${SITE_URL}/survey?order=${encodeURIComponent(d.orderId)}&amp;source=${src.key}" style="display:inline-block;margin:0 6px 8px 0;padding:8px 14px;background:#fff;border:1px solid #FFD6E8;border-radius:50px;text-decoration:none;font-size:13px;font-weight:600;color:#4A3040;">${src.emoji} ${src.label}</a>`).join('')}
+    </div>` : ''
+
+  return `
+  <div style="background:#FFF5F9;padding:24px 12px;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;">
+    <div style="max-width:560px;margin:0 auto;background:#fff;border-radius:16px;overflow:hidden;border:1px solid #FFE4EF;">
+      <div style="background:linear-gradient(135deg,#FFF0F5,#FFE4EF);padding:28px 24px;text-align:center;">
+        <div style="font-size:13px;font-weight:700;color:#EC4899;letter-spacing:1px;text-transform:uppercase;">Cambodia Floral</div>
+        <h1 style="margin:10px 0 4px;font-size:24px;color:#4A3040;">Thank you, ${esc(d.customerName)}!</h1>
+        <p style="margin:0;font-size:14px;color:#7A5A6A;">Your order is confirmed and we're getting it ready.</p>
+      </div>
+
+      <div style="padding:24px;">
+        <div style="text-align:center;margin-bottom:22px;">
+          <div style="font-size:12px;color:#9C7A8E;text-transform:uppercase;letter-spacing:.5px;">Order number</div>
+          <div style="font-size:20px;font-weight:800;color:#EC4899;font-family:monospace;">#${short}</div>
+        </div>
+
+        <h3 style="font-size:13px;color:#9C7A8E;text-transform:uppercase;letter-spacing:.5px;margin:0 0 6px;">Your order</h3>
+        <table style="width:100%;border-collapse:collapse;">${itemRows}</table>
+
+        <table style="width:100%;border-collapse:collapse;margin-top:12px;">
+          ${row('Subtotal', '$' + d.subtotal.toFixed(2))}
+          ${d.discount && d.discount > 0 ? row('Discount', '-$' + d.discount.toFixed(2)) : ''}
+          ${row('Delivery', d.deliveryFee > 0 ? '$' + d.deliveryFee.toFixed(2) : 'Free')}
+          ${row('Total paid', '$' + d.total.toFixed(2), true)}
+        </table>
+
+        <h3 style="font-size:13px;color:#9C7A8E;text-transform:uppercase;letter-spacing:.5px;margin:24px 0 6px;">Delivering to</h3>
+        <div style="font-size:14px;color:#4A3040;font-weight:600;">${esc(d.recipientName)}</div>
+        <div style="font-size:13px;color:#7A5A6A;line-height:1.6;">
+          ${d.recipientAddress ? esc(d.recipientAddress) + '<br />' : ''}${esc(d.recipientCity)}
+        </div>
+        ${d.deliveryDate ? `<div style="margin-top:10px;font-size:14px;color:#EC4899;font-weight:700;">
+          &#128197; ${formatShopDate(d.deliveryDate)}${d.deliveryTime ? ' &middot; ' + esc(d.deliveryTime) : ''}
+          <span style="font-weight:500;color:#9C7A8E;font-size:12px;">(${SHOP_TIME_ZONE_LABEL})</span>
+        </div>` : ''}
+
+        ${d.cardMessage ? `<h3 style="font-size:13px;color:#9C7A8E;text-transform:uppercase;letter-spacing:.5px;margin:24px 0 6px;">Your card message</h3>
+        <div style="background:#FFF0F5;border-radius:10px;padding:12px 16px;font-size:14px;color:#7A5A6A;font-style:italic;">&ldquo;${esc(d.cardMessage)}&rdquo;</div>` : ''}
+
+        <div style="text-align:center;margin:26px 0 6px;">
+          <a href="${SITE_URL}/track?order=${encodeURIComponent(d.orderId)}" style="display:inline-block;background:#EC4899;color:#fff;text-decoration:none;padding:13px 30px;border-radius:50px;font-size:15px;font-weight:700;">Track your order</a>
+        </div>
+
+        ${surveyHTML}
+      </div>
+
+      <div style="background:#FFF8FC;padding:18px 24px;text-align:center;border-top:1px solid #FFE4EF;">
+        <p style="margin:0 0 6px;font-size:12px;color:#9C7A8E;line-height:1.6;">
+          Questions? Just reply to this email &mdash; it reaches us directly.
+        </p>
+        <p style="margin:0;font-size:11px;color:#C9A0B4;">Cambodia Floral &middot; Phnom Penh, Cambodia</p>
+      </div>
+    </div>
+  </div>`
+}
+
+/**
+ * Order confirmation to the customer, sent once payment is captured.
+ * Never throws: a receipt must not be able to fail a paid order.
+ */
+export async function sendOrderConfirmation(d: CustomerConfirmation) {
+  const { RESEND_API_KEY } = getEnv()
+  if (!RESEND_API_KEY) {
+    console.log('[notify] no RESEND_API_KEY, skipping customer confirmation')
+    return
+  }
+  if (!d.customerEmail) return
+
+  try {
+    const res = await fetch('https://api.resend.com/emails', {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${RESEND_API_KEY}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        from: 'Cambodia Floral <orders@cambodiafloral.com>',
+        to: [d.customerEmail],
+        reply_to: 'orders@cambodiafloral.com',
+        subject: `Order confirmed #${d.orderId.slice(0, 8)} — thank you! 🌸`,
+        html: confirmationHTML(d),
+      }),
+    })
+    const result = await res.json()
+    console.log('[notify] customer confirmation:', res.status, JSON.stringify(result))
+  } catch (err) {
+    console.error('[notify] customer confirmation failed:', err)
+  }
 }

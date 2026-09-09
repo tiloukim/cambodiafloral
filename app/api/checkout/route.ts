@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server'
 import { createClient, createServiceClient } from '@/lib/supabase/server'
 import { notifyOrderAdmin } from '@/lib/notify'
 import { evaluatePromo, type PromoCode } from '@/lib/promo'
+import { isSourceKey } from '@/lib/attribution'
 import {
   earliestDeliveryDate, formatShopDate, isPastSameDayCutoff,
   SHOP_TIME_ZONE_LABEL, SAME_DAY_CUTOFF_LABEL,
@@ -158,6 +159,24 @@ export async function POST(req: Request) {
     .single()
 
   if (orderErr) return NextResponse.json({ error: orderErr.message }, { status: 500 })
+
+  // "How did you hear about us?" — written separately and non-fatally so a
+  // missing column (migration not yet run) can never fail a real order.
+  if (isSourceKey(body.heard_from)) {
+    const { error: heardErr } = await supabase
+      .from('cf_orders')
+      .update({
+        heard_from: body.heard_from,
+        heard_from_detail: body.heard_from === 'other'
+          ? String(body.heard_from_detail || '').slice(0, 200) || null
+          : null,
+        heard_from_at: new Date().toISOString(),
+      })
+      .eq('id', order.id)
+    if (heardErr) {
+      console.error('[checkout] could not record attribution (run supabase/attribution.sql):', heardErr.message)
+    }
+  }
 
   // Create order items
   const orderItems = body.items.map((item: { product_id: string; sku?: string; title: string; price: number; quantity: number; image_url: string }) => ({

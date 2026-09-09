@@ -27,6 +27,9 @@ interface Stats {
   confirmedOrders: number
   preparingOrders: number
   deliveredOrders: number
+  heardFrom: { key: string; label: string; emoji: string; orders: number; revenue: number }[]
+  heardFromAnswered: number
+  heardFromAsked: number
   customerCount: number
   productCount: number
   recentOrders: Array<{
@@ -227,6 +230,43 @@ export default function AdminDashboard() {
             <div style={{ fontSize: 11, fontWeight: 600, color: '#9C7A8E', marginTop: 4 }}>{s.label}</div>
           </div>
         ))}
+      </div>
+
+      {/* How customers found us */}
+      <div style={{ marginBottom: 32 }}>
+        <h3 style={{ fontSize: 16, fontWeight: 700, color: '#4A3040', marginBottom: 12 }}>
+          🔎 How Customers Found Us
+        </h3>
+        {(!stats.heardFrom || stats.heardFrom.length === 0) ? (
+          <div className="admin-empty">
+            No answers yet. Customers are asked at checkout and again in their confirmation email.
+          </div>
+        ) : (
+          <>
+            <div style={{ background: '#fff', border: '1px solid #FFE4EF', borderRadius: 14, padding: 20 }}>
+              {stats.heardFrom.map(src => {
+                const share = stats.heardFromAnswered > 0 ? (src.orders / stats.heardFromAnswered) * 100 : 0
+                return (
+                  <div key={src.key} style={{ marginBottom: 14 }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 13, marginBottom: 5, gap: 12 }}>
+                      <span style={{ fontWeight: 600, color: '#4A3040' }}>{src.emoji} {src.label}</span>
+                      <span style={{ color: '#7A5A6A', whiteSpace: 'nowrap' }}>
+                        {src.orders} order{src.orders === 1 ? '' : 's'} &middot; <strong style={{ color: '#10B981' }}>${src.revenue.toFixed(2)}</strong>
+                      </span>
+                    </div>
+                    <div style={{ height: 8, background: '#FFF0F5', borderRadius: 50, overflow: 'hidden' }}>
+                      <div style={{ width: `${share}%`, height: '100%', background: '#EC4899', borderRadius: 50 }} />
+                    </div>
+                  </div>
+                )
+              })}
+            </div>
+            <div style={{ fontSize: 12, color: '#9C7A8E', marginTop: 8 }}>
+              {stats.heardFromAnswered} of {stats.heardFromAsked} paid orders answered
+              {stats.heardFromAsked > 0 && ` (${((stats.heardFromAnswered / stats.heardFromAsked) * 100).toFixed(0)}%)`}.
+            </div>
+          </>
+        )}
       </div>
 
       {/* Recent Orders */}

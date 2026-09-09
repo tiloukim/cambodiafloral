@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server'
 import { createServiceClient } from '@/lib/supabase/server'
+import { sendOrderConfirmation } from '@/lib/notify'
 
 function getPayPalAPI() {
   return process.env.PAYPAL_MODE === 'live'
@@ -68,9 +69,13 @@ export async function POST(req: Request) {
     // Read current state first so we only count a promo redemption once
     const { data: existingOrder } = await supabase
       .from('cf_orders')
-      .select('status, promo_code')
+      .select('*, cf_order_items(*)')
       .eq('id', order_id)
       .maybeSingle()
+
+    // Capture can be retried by the client; everything below keyed on this
+    // runs exactly once, on the transition into 'confirmed'.
+    const firstConfirmation = !!existingOrder && existingOrder.status !== 'confirmed'
 
     await supabase
       .from('cf_orders')
@@ -102,7 +107,7 @@ export async function POST(req: Request) {
     }
 
     // Count the promo redemption once, on first successful payment
-    if (existingOrder && existingOrder.status !== 'confirmed' && existingOrder.promo_code) {
+    if (firstConfirmation && existingOrder.promo_code) {
       const code = String(existingOrder.promo_code).toUpperCase()
       const { data: promo } = await supabase
         .from('cf_promo_codes')
@@ -115,6 +120,32 @@ export async function POST(req: Request) {
           .update({ used_count: (promo.used_count || 0) + 1 })
           .eq('id', promo.id)
       }
+    }
+
+    // Receipt to the customer. Awaited so it survives the serverless freeze,
+    // but sendOrderConfirmation swallows its own errors — a failed email must
+    // never turn a captured payment into an error response.
+    if (firstConfirmation) {
+      await sendOrderConfirmation({
+        orderId: order_id,
+        customerName: existingOrder.sender_name,
+        customerEmail: existingOrder.sender_email,
+        recipientName: existingOrder.recipient_name,
+        recipientAddress: existingOrder.recipient_address,
+        recipientCity: existingOrder.recipient_city,
+        deliveryDate: existingOrder.delivery_date,
+        deliveryTime: existingOrder.delivery_time,
+        cardMessage: existingOrder.card_message,
+        items: (existingOrder.cf_order_items || []).map((i: { sku?: string | null; title: string; quantity: number; price: number }) => ({
+          sku: i.sku, title: i.title, quantity: i.quantity, price: Number(i.price),
+        })),
+        subtotal: Number(existingOrder.subtotal) || 0,
+        discount: Number(existingOrder.discount) || 0,
+        deliveryFee: Number(existingOrder.delivery_fee) || 0,
+        total: Number(existingOrder.total) || 0,
+        // Only ask if they didn't already tell us at checkout.
+        askHowTheyFoundUs: !existingOrder.heard_from,
+      })
     }
 
     return NextResponse.json({ success: true })

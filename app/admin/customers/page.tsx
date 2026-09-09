@@ -9,6 +9,7 @@ interface CustomerRow {
   phone: string | null
   country: string | null
   is_admin: boolean
+  survey_reward_code?: string | null
   created_at: string
   order_count: number
   total_spent: number
@@ -109,6 +110,14 @@ export default function AdminCustomers() {
                   <td>
                     <div style={{ fontWeight: 600 }}>{c.name}</div>
                     <div className="admin-sub-text">{c.email}</div>
+                    {c.survey_reward_code && (
+                      <div
+                        title={`Earned a 5% reward for completing the survey and rating an order — code ${c.survey_reward_code}. Applied automatically at their next checkout.`}
+                        style={{ display: 'inline-block', marginTop: 4, fontSize: 10, fontWeight: 700, color: '#EC4899', background: '#FFF0F5', border: '1px solid #FFD6E8', padding: '2px 8px', borderRadius: 50 }}
+                      >
+                        🎁 5% reward &middot; {c.survey_reward_code}
+                      </div>
+                    )}
                   </td>
                   <td style={{ fontSize: 13 }}>{c.phone || '--'}</td>
                   <td>{c.country || '--'}</td>

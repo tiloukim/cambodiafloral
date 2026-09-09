@@ -5,6 +5,7 @@ import Link from 'next/link'
 import Navbar from '@/components/Navbar'
 import Footer from '@/components/Footer'
 import OrderStatusBadge from '@/components/OrderStatusBadge'
+import RewardCard from '@/components/RewardCard'
 import { useAuth } from '@/lib/auth-context'
 import type { Order } from '@/lib/types'
 
@@ -44,6 +45,9 @@ export default function AccountPage() {
         }}>
           My Account
         </h1>
+
+        {/* Renders nothing unless there's an unspent reward on the account */}
+        <RewardCard />
 
         {/* Profile Card */}
         <div style={{

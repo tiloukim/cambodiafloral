@@ -16,6 +16,7 @@ export default function AdminOrders() {
   const [updatingId, setUpdatingId] = useState<string | null>(null)
   const [trackingInputs, setTrackingInputs] = useState<Record<string, string>>({})
   const [deletingId, setDeletingId] = useState<string | null>(null)
+  const [requestingId, setRequestingId] = useState<string | null>(null)
 
   const fetchOrders = useCallback(async () => {
     try {
@@ -53,6 +54,19 @@ export default function AdminOrders() {
       setTrackingInputs(prev => ({ ...prev, [id]: '' }))
       fetchOrders()
     } catch { /* ignore */ }
+  }
+
+  const requestReview = async (o: Order) => {
+    setRequestingId(o.id)
+    try {
+      const res = await fetch(`/api/orders/${o.id}/request-review`, { method: 'POST' })
+      const body = await res.json().catch(() => ({}))
+      alert(res.ok ? `Review request sent to ${body.sentTo}` : (body.error || 'Could not send the request'))
+      if (res.ok) fetchOrders()
+    } catch {
+      alert('Could not send the request')
+    }
+    setRequestingId(null)
   }
 
   const deleteOrder = async (id: string) => {
@@ -202,6 +216,26 @@ export default function AdminOrders() {
                           <option key={s} value={s}>{s.replace(/_/g, ' ')}</option>
                         ))}
                       </select>
+                      <button
+                        onClick={() => requestReview(o)}
+                        disabled={requestingId === o.id}
+                        title={o.review_requested_at
+                          ? `Review last requested ${new Date(o.review_requested_at).toLocaleDateString()} — click to ask again`
+                          : 'Email this customer asking for a review'}
+                        style={{
+                          padding: '4px 8px',
+                          fontSize: 11,
+                          fontWeight: 700,
+                          background: o.review_requested_at ? '#F0FDF4' : '#FFF0F5',
+                          color: o.review_requested_at ? '#059669' : '#EC4899',
+                          border: '1px solid ' + (o.review_requested_at ? '#BBF7D0' : '#FFD6E8'),
+                          borderRadius: 6,
+                          cursor: requestingId === o.id ? 'wait' : 'pointer',
+                          whiteSpace: 'nowrap',
+                        }}
+                      >
+                        {requestingId === o.id ? '…' : o.review_requested_at ? '✓ asked' : '★ ask'}
+                      </button>
                       <button
                         onClick={() => deleteOrder(o.id)}
                         disabled={deletingId === o.id}

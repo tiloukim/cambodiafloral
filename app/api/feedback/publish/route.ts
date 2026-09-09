@@ -73,7 +73,16 @@ export async function POST(req: Request) {
 
   if (error) {
     if (error.code === '23505') {
-      return NextResponse.json({ error: 'This feedback is already published for that product' }, { status: 409 })
+      // A row already exists for this order+product. If it isn't the feedback
+      // text, the customer reviewed it themselves and there is nothing to publish.
+      const { data: existing } = await supabase
+        .from('cf_reviews').select('body').eq('order_id', order_id).eq('product_id', product_id).maybeSingle()
+      const isTheirOwnReview = existing?.body !== order.feedback_comment
+      return NextResponse.json({
+        error: isTheirOwnReview
+          ? 'This customer already reviewed this item themselves, so there is nothing to publish.'
+          : 'This feedback is already published for that product.',
+      }, { status: 409 })
     }
     return NextResponse.json({ error: error.message }, { status: 500 })
   }

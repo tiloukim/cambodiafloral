@@ -291,6 +291,24 @@ export default function SurveyClient() {
               </div>
             </div>
 
+            {/* Only invite a public review from someone who just said it went
+                well. Asking everyone cold converts worse and, on a bad
+                delivery, reads as tone-deaf. */}
+            {savedRating >= 4 && (
+              <div style={{ marginTop: 20, background: '#FFF8FC', border: '1px solid #FFE4EF', borderRadius: 14, padding: '18px 16px' }}>
+                <div style={{ fontSize: 15, fontWeight: 700, color: '#4A3040' }}>Glad it went well!</div>
+                <div style={{ fontSize: 13, color: '#7A5A6A', margin: '4px 0 12px', lineHeight: 1.6 }}>
+                  Would you say that publicly? A review helps someone else decide what to send.
+                </div>
+                <Link
+                  href={`/review/${orderId}`}
+                  style={{ display: 'inline-block', background: '#fff', color: '#EC4899', border: '1px solid #FFD6E8', padding: '9px 20px', borderRadius: 50, fontSize: 14, fontWeight: 700, textDecoration: 'none' }}
+                >
+                  Write a review
+                </Link>
+              </div>
+            )}
+
             <div style={{ marginTop: 22, display: 'flex', gap: 10, justifyContent: 'center', flexWrap: 'wrap' }}>
               <Link href={`/track?order=${orderId}`} style={{ background: '#EC4899', color: '#fff', padding: '11px 24px', borderRadius: 50, fontSize: 14, fontWeight: 700, textDecoration: 'none' }}>Track your order</Link>
               <Link href="/shop" style={{ background: '#fff', color: '#EC4899', border: '1px solid #FFD6E8', padding: '11px 24px', borderRadius: 50, fontSize: 14, fontWeight: 700, textDecoration: 'none' }}>Keep browsing</Link>

@@ -61,6 +61,9 @@ export interface Order {
   promo_code: string | null
   heard_from: string | null
   heard_from_detail: string | null
+  feedback_rating: number | null
+  feedback_comment: string | null
+  review_requested_at: string | null
   delivered_at: string | null
   created_at: string
   updated_at: string

@@ -118,7 +118,28 @@ export async function POST(req: Request) {
     .single()
 
   if (error) {
-    if (error.code === '23505') return NextResponse.json({ error: 'You have already reviewed this item' }, { status: 409 })
+    if (error.code === '23505') {
+      // Could be their own earlier review, or feedback the shop published on
+      // their behalf. Saying "you already reviewed this" for the second case
+      // is simply untrue.
+      const { data: existing } = await supabase
+        .from('cf_reviews')
+        .select('body')
+        .eq('order_id', orderId)
+        .eq('product_id', productId)
+        .maybeSingle()
+      const { data: fb } = await supabase
+        .from('cf_orders')
+        .select('feedback_comment')
+        .eq('id', orderId)
+        .maybeSingle()
+      const fromFeedback = Boolean(fb?.feedback_comment && existing?.body === fb.feedback_comment)
+      return NextResponse.json({
+        error: fromFeedback
+          ? 'Your feedback for this item is already on our site — thank you!'
+          : 'You have already reviewed this item',
+      }, { status: 409 })
+    }
     return NextResponse.json({ error: error.message }, { status: 500 })
   }
   return NextResponse.json(data, { status: 201 })

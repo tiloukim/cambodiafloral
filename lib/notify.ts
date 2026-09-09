@@ -486,3 +486,48 @@ export async function sendRewardEmail(d: RewardEmail) {
   </div>`
   await sendCustomerEmail(d.customerEmail, `Your ${REWARD_PERCENT}% thank-you code 🌸`, html, 'reward')
 }
+
+export interface ReviewRequestEmail {
+  orderId: string
+  customerName: string
+  customerEmail: string
+  items: { title: string; image_url?: string | null }[]
+}
+
+/** "Would you review what you bought?" Never throws. */
+export async function sendReviewRequestEmail(d: ReviewRequestEmail) {
+  const first = (d.customerName || '').trim().split(/\s+/)[0] || 'there'
+  const itemList = d.items.slice(0, 4).map(i =>
+    `<li style="margin-bottom:4px;">${esc(i.title)}</li>`).join('')
+
+  const html = `
+  <div style="background:#FFF5F9;padding:24px 12px;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;">
+    <div style="max-width:560px;margin:0 auto;background:#fff;border-radius:16px;overflow:hidden;border:1px solid #FFE4EF;">
+      <div style="background:linear-gradient(135deg,#FFF0F5,#FFE4EF);padding:28px 24px;text-align:center;">
+        <div style="font-size:13px;font-weight:700;color:#EC4899;letter-spacing:1px;text-transform:uppercase;">Cambodia Floral</div>
+        <div style="font-size:36px;margin:10px 0 2px;">&#127804;</div>
+        <h1 style="margin:6px 0 4px;font-size:23px;color:#4A3040;">How were your flowers, ${esc(first)}?</h1>
+        <p style="margin:0;font-size:14px;color:#7A5A6A;">A few words would mean a lot to a small shop in Phnom Penh.</p>
+      </div>
+      <div style="padding:24px;">
+        ${itemList ? `<p style="font-size:14px;color:#7A5A6A;margin:0 0 8px;">You ordered:</p>
+        <ul style="font-size:14px;color:#4A3040;margin:0 0 20px;padding-left:20px;">${itemList}</ul>` : ''}
+        <p style="font-size:14px;color:#7A5A6A;line-height:1.7;margin:0 0 20px;">
+          Your review helps other people decide what to send to someone they love &mdash;
+          and it takes less than a minute. Only you can leave one, because only you bought it.
+        </p>
+        <div style="text-align:center;">
+          <a href="${SITE_URL}/review/${encodeURIComponent(d.orderId)}" style="display:inline-block;background:#EC4899;color:#fff;text-decoration:none;padding:14px 32px;border-radius:50px;font-size:15px;font-weight:700;">Leave a review</a>
+        </div>
+        <p style="font-size:12px;color:#C9A0B4;text-align:center;margin:16px 0 0;">
+          Not interested? Just ignore this &mdash; we won't ask again.
+        </p>
+      </div>
+      <div style="background:#FFF8FC;padding:18px 24px;text-align:center;border-top:1px solid #FFE4EF;">
+        <p style="margin:0;font-size:11px;color:#C9A0B4;">Cambodia Floral &middot; Phnom Penh, Cambodia</p>
+      </div>
+    </div>
+  </div>`
+
+  await sendCustomerEmail(d.customerEmail, `How were your flowers? 🌸`, html, 'review request')
+}

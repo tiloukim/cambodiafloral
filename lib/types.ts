@@ -64,6 +64,8 @@ export interface Order {
   feedback_rating: number | null
   feedback_comment: string | null
   review_requested_at: string | null
+  payment_fee: number | null
+  payment_net: number | null
   delivered_at: string | null
   created_at: string
   updated_at: string

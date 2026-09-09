@@ -190,7 +190,52 @@ export default function AdminOrders() {
                       </div>
                     )}
                   </td>
-                  <td style={{ fontWeight: 700, color: '#10B981' }}>${o.total.toFixed(2)}</td>
+                  <td style={{ minWidth: 150 }}>
+                    {/* What the customer paid, and what actually lands in the
+                        account after PayPal takes its cut. */}
+                    <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 11, lineHeight: 1.5 }}>
+                      <tbody>
+                        <tr>
+                          <td style={{ color: '#9C7A8E', padding: '1px 0' }}>Items</td>
+                          <td style={{ textAlign: 'right', color: '#4A3040', padding: '1px 0' }}>${(o.subtotal ?? 0).toFixed(2)}</td>
+                        </tr>
+                        {(o.discount ?? 0) > 0 && (
+                          <tr>
+                            <td style={{ color: '#9C7A8E', padding: '1px 0' }}>
+                              Discount{o.promo_code ? ` (${o.promo_code})` : ''}
+                            </td>
+                            <td style={{ textAlign: 'right', color: '#EF4444', padding: '1px 0' }}>−${(o.discount ?? 0).toFixed(2)}</td>
+                          </tr>
+                        )}
+                        <tr>
+                          <td style={{ color: '#9C7A8E', padding: '1px 0' }}>Delivery</td>
+                          <td style={{ textAlign: 'right', color: o.delivery_fee > 0 ? '#4A3040' : '#059669', padding: '1px 0' }}>
+                            {o.delivery_fee > 0 ? `$${o.delivery_fee.toFixed(2)}` : 'Free'}
+                          </td>
+                        </tr>
+                        <tr>
+                          <td style={{ fontWeight: 700, color: '#4A3040', borderTop: '1px solid #FFE4EF', padding: '3px 0 1px' }}>Paid</td>
+                          <td style={{ textAlign: 'right', fontWeight: 800, fontSize: 13, color: '#10B981', borderTop: '1px solid #FFE4EF', padding: '3px 0 1px' }}>
+                            ${o.total.toFixed(2)}
+                          </td>
+                        </tr>
+                        {o.payment_fee != null && (
+                          <>
+                            <tr>
+                              <td style={{ color: '#9C7A8E', padding: '1px 0' }}>PayPal fee</td>
+                              <td style={{ textAlign: 'right', color: '#EF4444', padding: '1px 0' }}>−${Number(o.payment_fee).toFixed(2)}</td>
+                            </tr>
+                            <tr>
+                              <td style={{ color: '#9C7A8E', fontWeight: 600, padding: '1px 0' }}>You receive</td>
+                              <td style={{ textAlign: 'right', fontWeight: 700, color: '#059669', padding: '1px 0' }}>
+                                ${Number(o.payment_net ?? (o.total - Number(o.payment_fee))).toFixed(2)}
+                              </td>
+                            </tr>
+                          </>
+                        )}
+                      </tbody>
+                    </table>
+                  </td>
                   <td><OrderStatusBadge status={o.status} /></td>
                   <td>
                     {o.tracking_number ? (

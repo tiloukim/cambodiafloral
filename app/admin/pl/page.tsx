@@ -29,6 +29,7 @@ interface Line {
 }
 
 interface PL {
+  timeZoneLabel: string
   feeModel: { percent: number; fixed: number }
   periods: { today: Summary; month: Summary; year: Summary; all: Summary }
   months: (Summary & { month: string })[]
@@ -173,6 +174,7 @@ export default function AdminPL() {
                 : 'All fees are the exact amounts PayPal reported.'}
             </li>
             <li>Delivery cost (driver, fuel) isn&apos;t tracked yet, so it isn&apos;t deducted.</li>
+            <li>Today / month / year follow the shop&apos;s calendar in {data.timeZoneLabel}.</li>
           </ul>
         </div>
       </div>

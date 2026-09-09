@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server'
 import { createServiceClient } from '@/lib/supabase/server'
 import { isAdmin } from '@/lib/admin'
 import { orderFee, roundCents, PAYPAL_FEE_PERCENT, PAYPAL_FEE_FIXED } from '@/lib/fees'
+import { shopDateKey, shopToday, SHOP_TIME_ZONE, SHOP_TIME_ZONE_LABEL } from '@/lib/timezone'
 
 // An order only earns money once it has been paid for. 'pending' orders were
 // never captured and 'cancelled' ones were refunded or dropped, so neither
@@ -23,6 +24,7 @@ interface OrderRow {
 interface Line {
   id: string
   date: string
+  shopDate: string
   customer: string
   status: string
   subtotal: number
@@ -94,6 +96,7 @@ export async function GET() {
     return {
       id: o.id,
       date: o.created_at,
+      shopDate: shopDateKey(o.created_at),
       customer: o.sender_name,
       status: o.status,
       subtotal: roundCents(Number(o.subtotal) || 0),
@@ -107,13 +110,17 @@ export async function GET() {
     }
   })
 
-  const today = new Date().toISOString().slice(0, 10)
-  const inPeriod = (prefix: string) => lines.filter(l => l.date.startsWith(prefix))
+  // Periods follow the shop's calendar in Phnom Penh. An order placed at
+  // 8am Cambodia time is 01:00 UTC the same day, but one placed at 6pm
+  // Cambodia time is 11:00 UTC — bucketing on the raw UTC timestamp would
+  // scatter a shop day across two report days, and a month-end across two months.
+  const today = shopToday()
+  const inPeriod = (prefix: string) => lines.filter(l => l.shopDate.startsWith(prefix))
 
   // Month-by-month, newest first
   const byMonth = new Map<string, Line[]>()
   lines.forEach(l => {
-    const key = l.date.slice(0, 7)
+    const key = l.shopDate.slice(0, 7)
     if (!byMonth.has(key)) byMonth.set(key, [])
     byMonth.get(key)!.push(l)
   })
@@ -124,6 +131,8 @@ export async function GET() {
   const unpaid = ((orderRows || []) as OrderRow[]).filter(o => !PAID_STATUSES.has(o.status))
 
   return NextResponse.json({
+    timeZone: SHOP_TIME_ZONE,
+    timeZoneLabel: SHOP_TIME_ZONE_LABEL,
     feeModel: { percent: PAYPAL_FEE_PERCENT, fixed: PAYPAL_FEE_FIXED },
     periods: {
       today: summarize(inPeriod(today)),

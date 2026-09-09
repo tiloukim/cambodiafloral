@@ -4,6 +4,7 @@ import { useState, useEffect, useCallback } from 'react'
 import Link from 'next/link'
 import OrderStatusBadge from '@/components/OrderStatusBadge'
 import type { Order } from '@/lib/types'
+import { formatShopDate, SHOP_TIME_ZONE_LABEL } from '@/lib/timezone'
 
 const STATUSES = ['all', 'pending', 'confirmed', 'preparing', 'out_for_delivery', 'delivered', 'cancelled']
 
@@ -141,7 +142,7 @@ export default function AdminOrders() {
                     <div className="admin-sub-text">{o.recipient_city}</div>
                     {o.delivery_date && (
                       <div style={{ fontSize: 11, color: '#EC4899', fontWeight: 600, marginTop: 4 }}>
-                        📅 {o.delivery_date}{o.delivery_time ? ` @ ${o.delivery_time}` : ''}
+                        📅 {formatShopDate(o.delivery_date)}{o.delivery_time ? ` @ ${o.delivery_time}` : ''} <span style={{ fontWeight: 500, color: '#9C7A8E' }}>({SHOP_TIME_ZONE_LABEL})</span>
                       </div>
                     )}
                     {o.delivery_notes && (

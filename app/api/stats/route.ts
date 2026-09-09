@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server'
 import { createServiceClient } from '@/lib/supabase/server'
 import { isAdmin } from '@/lib/admin'
 import { orderFee, roundCents } from '@/lib/fees'
+import { shopDateKey, shopToday } from '@/lib/timezone'
 
 // Money is only earned once an order is captured. 'pending' was never paid for
 // and 'cancelled' was refunded or dropped, so neither counts as revenue.
@@ -48,7 +49,7 @@ export async function GET() {
     const revenue = roundCents(Number(o.total) || 0)
     const cost = roundCents(cogsByOrder.get(o.id) || 0)
     const { fee } = orderFee(o)
-    return { created_at: o.created_at, revenue, cost, fee, profit: roundCents(revenue - cost - fee) }
+    return { shopDate: shopDateKey(o.created_at), revenue, cost, fee, profit: roundCents(revenue - cost - fee) }
   })
 
   const summarize = (ls: typeof lines) => {
@@ -56,8 +57,9 @@ export async function GET() {
     return { revenue: sum(l => l.revenue), cost: sum(l => l.cost), fees: sum(l => l.fee), profit: sum(l => l.profit) }
   }
 
-  const today = new Date().toISOString().slice(0, 10)
-  const inPeriod = (prefix: string) => lines.filter(l => l.created_at.startsWith(prefix))
+  // Today/month/year are the shop's calendar in Phnom Penh, not UTC.
+  const today = shopToday()
+  const inPeriod = (prefix: string) => lines.filter(l => l.shopDate.startsWith(prefix))
 
   const todayProfit = summarize(inPeriod(today))
   const monthProfit = summarize(inPeriod(today.slice(0, 7)))

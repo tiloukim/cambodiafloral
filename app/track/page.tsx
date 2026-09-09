@@ -6,6 +6,7 @@ import Navbar from '@/components/Navbar'
 import Footer from '@/components/Footer'
 import OrderStatusBadge from '@/components/OrderStatusBadge'
 import type { Order } from '@/lib/types'
+import { formatShopDate, SHOP_TIME_ZONE_LABEL } from '@/lib/timezone'
 
 const TIMELINE_STEPS = ['pending', 'confirmed', 'preparing', 'out_for_delivery', 'delivered']
 
@@ -207,7 +208,7 @@ function TrackContent() {
                 <div style={{ fontSize: 13, color: '#7A5A6A', lineHeight: 1.8 }}>
                   <div>Placed: {new Date(order.created_at).toLocaleDateString()}</div>
                   <div>Total: <span style={{ color: '#DB2777', fontWeight: 700 }}>${order.total.toFixed(2)}</span></div>
-                  {order.delivery_date && <div>Delivery: {new Date(order.delivery_date).toLocaleDateString()}{order.delivery_time && ` (${order.delivery_time.startsWith('specific:') ? order.delivery_time.replace('specific:', '') : order.delivery_time})`}</div>}
+                  {order.delivery_date && <div>Delivery: {formatShopDate(order.delivery_date)}{order.delivery_time && ` (${order.delivery_time.startsWith('specific:') ? order.delivery_time.replace('specific:', '') : order.delivery_time})`} &middot; {SHOP_TIME_ZONE_LABEL}</div>}
                   {order.tracking_number && <div>Tracking: {order.tracking_number}</div>}
                 </div>
               </div>

@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server'
 import { createClient, createServiceClient } from '@/lib/supabase/server'
 import { notifyOrderAdmin } from '@/lib/notify'
 import { evaluatePromo, type PromoCode } from '@/lib/promo'
+import { shopToday, formatShopDate, SHOP_TIME_ZONE_LABEL } from '@/lib/timezone'
 
 const DELIVERY_FEE = 5
 const FREE_DELIVERY_THRESHOLD = 100
@@ -16,6 +17,18 @@ export async function POST(req: Request) {
 
   if (!body.items || body.items.length === 0) {
     return NextResponse.json({ error: 'No items in order' }, { status: 400 })
+  }
+
+  // The delivery date is a Cambodia calendar date. Check it against today in
+  // Phnom Penh, not against the server's clock (Vercel runs in UTC) or the
+  // sender's — a date already gone at the shop can't be delivered.
+  if (body.delivery_date) {
+    const today = shopToday()
+    if (String(body.delivery_date) < today) {
+      return NextResponse.json({
+        error: `That delivery date has already passed in Cambodia. It is ${formatShopDate(today)} in Phnom Penh (${SHOP_TIME_ZONE_LABEL}).`,
+      }, { status: 400 })
+    }
   }
 
   const supabase = createServiceClient()

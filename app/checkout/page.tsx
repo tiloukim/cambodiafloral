@@ -7,6 +7,7 @@ import Navbar from '@/components/Navbar'
 import Footer from '@/components/Footer'
 import { useAuth } from '@/lib/auth-context'
 import { useCart } from '@/lib/cart-context'
+import { shopToday, formatShopDate, SHOP_TIME_ZONE_LABEL } from '@/lib/timezone'
 
 const DELIVERY_FEE = 5
 const FREE_DELIVERY_THRESHOLD = 100
@@ -38,6 +39,12 @@ function CheckoutContent() {
 
   const [deliveryDate, setDeliveryDate] = useState('')
   const [deliveryTime, setDeliveryTime] = useState('')
+
+  // Earliest selectable delivery date = today in Phnom Penh, not in the
+  // sender's timezone. A US sender ordering Monday afternoon is already into
+  // Tuesday at the shop, and must not be offered a date that has passed there.
+  const [shopTodayDate, setShopTodayDate] = useState('')
+  useEffect(() => { setShopTodayDate(shopToday()) }, [])
   const [cardMessage, setCardMessage] = useState('')
 
   const [promoInput, setPromoInput] = useState('')
@@ -327,7 +334,7 @@ function CheckoutContent() {
                 </div>
                 <div>
                   <label style={labelStyle}>Delivery Date</label>
-                  <input type="date" value={deliveryDate} onChange={e => setDeliveryDate(e.target.value)} style={inputStyle} min={new Date().toISOString().split('T')[0]} />
+                  <input type="date" value={deliveryDate} onChange={e => setDeliveryDate(e.target.value)} style={inputStyle} min={shopTodayDate || undefined} />
                 </div>
                 <div>
                   <label style={labelStyle}>Preferred Time</label>
@@ -345,6 +352,12 @@ function CheckoutContent() {
                     <input type="time" value={deliveryTime.includes(':') ? deliveryTime.replace('specific:', '') : ''} onChange={e => setDeliveryTime(`specific:${e.target.value}`)} style={inputStyle} />
                   </div>
                 )}
+                <div style={{ gridColumn: '1 / -1', marginTop: -4 }}>
+                  <div style={{ fontSize: 12, color: '#9C7A8E', background: '#FFF8FC', border: '1px solid #FFE4EF', borderRadius: 10, padding: '10px 14px', lineHeight: 1.6 }}>
+                    &#128337; Delivery dates and times are <strong>{SHOP_TIME_ZONE_LABEL}</strong> &mdash; the florist&apos;s local time in Cambodia, not your own.
+                    {shopTodayDate && <> It&apos;s <strong>{formatShopDate(shopTodayDate)}</strong> in Phnom Penh right now.</>}
+                  </div>
+                </div>
                 <div style={{ gridColumn: '1 / -1' }}>
                   <label style={labelStyle}>Card Message</label>
                   <textarea

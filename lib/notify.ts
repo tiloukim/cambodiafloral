@@ -1,3 +1,5 @@
+import { formatShopDate, SHOP_TIME_ZONE_LABEL } from '@/lib/timezone'
+
 function getEnv() {
   return {
     RESEND_API_KEY: process.env.RESEND_API_KEY,
@@ -48,8 +50,8 @@ function formatOrderText(data: OrderNotification): string {
     `Name: ${data.recipientName}`,
     data.recipientAddress ? `Address: ${data.recipientAddress}, ${data.recipientCity}` : `City: ${data.recipientCity}`,
     data.recipientPhone ? `Phone: ${data.recipientPhone}` : '',
-    data.deliveryDate ? `Date: ${data.deliveryDate}` : '',
-    data.deliveryTime ? `Time: ${data.deliveryTime}` : '',
+    data.deliveryDate ? `Date: ${formatShopDate(data.deliveryDate)} (${SHOP_TIME_ZONE_LABEL})` : '',
+    data.deliveryTime ? `Time: ${data.deliveryTime} (${SHOP_TIME_ZONE_LABEL})` : '',
     data.deliveryNotes ? `Note: ${data.deliveryNotes}` : '',
     '',
     `Total: $${data.total.toFixed(2)}`,
@@ -80,8 +82,8 @@ function formatOrderHTML(data: OrderNotification): string {
         <tr><td style="padding:6px 0;color:#888;width:100px;">Name</td><td style="padding:6px 0;font-weight:600;">${data.recipientName}</td></tr>
         ${data.recipientPhone ? `<tr><td style="padding:6px 0;color:#888;">Phone</td><td style="padding:6px 0;">${data.recipientPhone}</td></tr>` : ''}
         ${data.recipientAddress ? `<tr><td style="padding:6px 0;color:#888;">Address</td><td style="padding:6px 0;">${data.recipientAddress}, ${data.recipientCity}</td></tr>` : `<tr><td style="padding:6px 0;color:#888;">City</td><td style="padding:6px 0;">${data.recipientCity}</td></tr>`}
-        ${data.deliveryDate ? `<tr><td style="padding:6px 0;color:#888;">Date</td><td style="padding:6px 0;">${data.deliveryDate}</td></tr>` : ''}
-        ${data.deliveryTime ? `<tr><td style="padding:6px 0;color:#888;">Time</td><td style="padding:6px 0;">${data.deliveryTime}</td></tr>` : ''}
+        ${data.deliveryDate ? `<tr><td style="padding:6px 0;color:#888;">Date</td><td style="padding:6px 0;">${formatShopDate(data.deliveryDate)} <span style="color:#888;">(${SHOP_TIME_ZONE_LABEL})</span></td></tr>` : ''}
+        ${data.deliveryTime ? `<tr><td style="padding:6px 0;color:#888;">Time</td><td style="padding:6px 0;">${data.deliveryTime} <span style="color:#888;">(${SHOP_TIME_ZONE_LABEL})</span></td></tr>` : ''}
         ${data.deliveryNotes ? `<tr><td style="padding:6px 0;color:#888;">Note</td><td style="padding:6px 0;">${data.deliveryNotes}</td></tr>` : ''}
       </table>
       <h3 style="margin:16px 0 8px;font-size:14px;color:#888;">Order</h3>

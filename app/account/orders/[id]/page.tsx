@@ -7,6 +7,7 @@ import Navbar from '@/components/Navbar'
 import Footer from '@/components/Footer'
 import OrderStatusBadge from '@/components/OrderStatusBadge'
 import type { Order } from '@/lib/types'
+import { formatShopDate, SHOP_TIME_ZONE_LABEL } from '@/lib/timezone'
 
 const TIMELINE_STEPS = ['pending', 'confirmed', 'preparing', 'out_for_delivery', 'delivered']
 
@@ -172,7 +173,7 @@ export default function OrderDetailPage() {
           {order.delivery_date && (
             <div style={{ background: '#fff', borderRadius: 16, border: '1px solid #FFE4EF', padding: 20 }}>
               <h3 style={{ fontSize: 14, fontWeight: 700, color: '#4A3040', marginBottom: 8 }}>Delivery Date</h3>
-              <div style={{ fontSize: 14, color: '#7A5A6A' }}>{new Date(order.delivery_date).toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' })}</div>
+              <div style={{ fontSize: 14, color: '#7A5A6A' }}>{formatShopDate(order.delivery_date)} &middot; {SHOP_TIME_ZONE_LABEL}</div>
             </div>
           )}
           {order.card_message && (

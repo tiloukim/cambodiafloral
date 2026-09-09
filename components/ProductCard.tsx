@@ -38,11 +38,6 @@ export default function ProductCard({ product }: { product: Product }) {
         )}
       </div>
       <div style={{ padding: '14px 16px 18px' }}>
-        {product.sku && (
-          <div style={{ fontFamily: 'monospace', fontSize: 11, fontWeight: 700, color: '#EC4899', letterSpacing: '0.5px', marginBottom: 4 }}>
-            {product.sku}
-          </div>
-        )}
         <h3 style={{ fontSize: 15, fontWeight: 600, color: '#4A3040', marginBottom: 6, lineHeight: 1.3 }}>
           {product.title}
         </h3>
@@ -56,6 +51,14 @@ export default function ProductCard({ product }: { product: Product }) {
             </span>
           )}
         </div>
+        {product.sku && (
+          <div style={{ marginTop: 8, fontSize: 11, color: '#9C7A8E', letterSpacing: '0.3px' }}>
+            Item #{' '}
+            <span style={{ fontFamily: 'monospace', fontSize: 12, fontWeight: 700, color: '#EC4899' }}>
+              {product.sku}
+            </span>
+          </div>
+        )}
       </div>
     </Link>
   )

@@ -25,6 +25,7 @@ export default function SurveyClient() {
   const [comment, setComment] = useState('')
   const [feedbackSent, setFeedbackSent] = useState(false)
   const [sendingFeedback, setSendingFeedback] = useState(false)
+  const [consent, setConsent] = useState(false)
   const [detail, setDetail] = useState('')
 
   const submit = useCallback(async (source: string, detailText = '') => {
@@ -50,14 +51,19 @@ export default function SurveyClient() {
     setSaving(false)
   }, [orderId])
 
-  const sendFeedback = useCallback(async (stars: number, text: string) => {
+  const sendFeedback = useCallback(async (stars: number, text: string, mayShare = false) => {
     if (!orderId || (!stars && !text.trim())) return
     setSendingFeedback(true)
     try {
       const res = await fetch('/api/feedback', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ order_id: orderId, rating: stars || undefined, comment: text || undefined }),
+        body: JSON.stringify({
+          order_id: orderId,
+          rating: stars || undefined,
+          comment: text || undefined,
+          consent: mayShare,
+        }),
       })
       if (res.ok) setFeedbackSent(true)
     } catch { /* the thank-you stands either way */ }
@@ -164,7 +170,7 @@ export default function SurveyClient() {
                 {[1, 2, 3, 4, 5].map(n => (
                   <button
                     key={n}
-                    onClick={() => { setRating(n); sendFeedback(n, comment) }}
+                    onClick={() => { setRating(n); sendFeedback(n, comment, consent) }}
                     aria-label={`${n} star${n > 1 ? 's' : ''}`}
                     style={{
                       background: 'none', border: 'none', cursor: 'pointer', padding: 0,
@@ -186,9 +192,21 @@ export default function SurveyClient() {
                   fontSize: 14, fontFamily: 'inherit', resize: 'vertical',
                 }}
               />
+              <label style={{ display: 'flex', gap: 8, alignItems: 'flex-start', marginTop: 12, cursor: 'pointer' }}>
+                <input
+                  type="checkbox"
+                  checked={consent}
+                  onChange={e => setConsent(e.target.checked)}
+                  style={{ marginTop: 3, accentColor: '#EC4899', width: 16, height: 16, flexShrink: 0 }}
+                />
+                <span style={{ fontSize: 12, color: '#7A5A6A', lineHeight: 1.6 }}>
+                  Cambodia Floral may share this on their website, with my first name.
+                  Leave unticked and it stays private &mdash; only the shop will see it.
+                </span>
+              </label>
               <div style={{ textAlign: 'center', marginTop: 10 }}>
                 <button
-                  onClick={() => sendFeedback(rating, comment)}
+                  onClick={() => sendFeedback(rating, comment, consent)}
                   disabled={sendingFeedback || (!rating && !comment.trim())}
                   style={{
                     padding: '10px 24px', borderRadius: 50, border: 'none', fontSize: 14, fontWeight: 700,

@@ -6,14 +6,14 @@ import { createServiceClient } from '@/lib/supabase/server'
 // where there's no session. It writes only these three columns on an order the
 // caller already knows the id of.
 export async function POST(req: Request) {
-  let body: { order_id?: string; rating?: number; comment?: string }
+  let body: { order_id?: string; rating?: number; comment?: string; consent?: boolean }
   try {
     body = await req.json()
   } catch {
     return NextResponse.json({ error: 'Invalid request' }, { status: 400 })
   }
 
-  const { order_id, rating, comment } = body
+  const { order_id, rating, comment, consent } = body
   const hasRating = rating !== undefined && rating !== null
   const hasComment = typeof comment === 'string' && comment.trim().length > 0
 
@@ -41,6 +41,9 @@ export async function POST(req: Request) {
   const updates: Record<string, unknown> = { feedback_at: new Date().toISOString() }
   if (hasRating) updates.feedback_rating = rating
   if (hasComment) updates.feedback_comment = comment.trim().slice(0, 1000)
+  // Consent is only meaningful attached to words. Sent explicitly each time,
+  // so unticking the box withdraws permission.
+  if (typeof consent === 'boolean') updates.feedback_consent = consent
 
   const { error } = await supabase.from('cf_orders').update(updates).eq('id', order_id)
 

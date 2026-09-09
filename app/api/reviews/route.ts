@@ -78,6 +78,9 @@ export async function POST(req: Request) {
       rating,
       title,
       body: text,
+      // Pending until an admin approves. Customer words don't go live —
+      // or into the aggregateRating rich result — unread.
+      approved: false,
     })
     .select()
     .single()

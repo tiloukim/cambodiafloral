@@ -17,6 +17,9 @@ interface Row {
   answeredAt: string | null
   rating: number | null
   comment: string | null
+  consent: boolean
+  products: { id: string; title: string }[]
+  published: { productId: string; approved: boolean }[]
 }
 
 interface Report {
@@ -55,9 +58,37 @@ function toCSV(rows: Row[]): string {
 export default function AdminSurvey() {
   const [data, setData] = useState<Report | null>(null)
   const [loading, setLoading] = useState(true)
+  const [publishing, setPublishing] = useState<string | null>(null)
+  const [pickProduct, setPickProduct] = useState<Record<string, string>>({})
   const [period, setPeriod] = useState<PeriodKey>('all')
   const [from, setFrom] = useState('')
   const [to, setTo] = useState('')
+
+  const reload = () => {
+    fetch('/api/survey/report')
+      .then(r => r.json())
+      .then(d => { if (!d.error) setData(d) })
+      .catch(() => {})
+  }
+
+  const publish = async (row: Row) => {
+    const productId = pickProduct[row.id] || row.products[0]?.id
+    if (!productId) return
+    setPublishing(row.id)
+    try {
+      const res = await fetch('/api/feedback/publish', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ order_id: row.id, product_id: productId }),
+      })
+      const body = await res.json().catch(() => ({}))
+      if (!res.ok) alert(body.error || 'Could not publish this feedback')
+      else reload()
+    } catch {
+      alert('Could not publish this feedback')
+    }
+    setPublishing(null)
+  }
 
   useEffect(() => {
     fetch('/api/survey/report')
@@ -251,6 +282,42 @@ export default function AdminSurvey() {
                       <div style={{ fontSize: 12, color: '#7A5A6A', maxWidth: 280, fontStyle: 'italic' }}>&ldquo;{r.comment}&rdquo;</div>
                     ) : (
                       <span style={{ fontSize: 12, color: '#C9A0B4' }}>&mdash;</span>
+                    )}
+
+                    {/* Publishing needs the customer's permission AND an admin's
+                        deliberate action. Neither alone is enough. */}
+                    {r.rating != null && (
+                      r.published.length > 0 ? (
+                        <div style={{ marginTop: 6, fontSize: 11, fontWeight: 700, color: '#059669', background: '#F0FDF4', padding: '2px 8px', borderRadius: 50, display: 'inline-block' }}>
+                          ✓ Published to the site
+                        </div>
+                      ) : !r.consent ? (
+                        <div style={{ marginTop: 6, fontSize: 11, color: '#C9A0B4' }}>
+                          Private &mdash; customer didn&apos;t agree to share
+                        </div>
+                      ) : (
+                        <div style={{ marginTop: 8, display: 'flex', gap: 6, alignItems: 'center', flexWrap: 'wrap' }}>
+                          {r.products.length > 1 && (
+                            <select
+                              value={pickProduct[r.id] || r.products[0]?.id || ''}
+                              onChange={e => setPickProduct(p => ({ ...p, [r.id]: e.target.value }))}
+                              style={{ padding: '5px 8px', borderRadius: 8, border: '1px solid #FFD6E8', fontSize: 12, maxWidth: 170 }}
+                            >
+                              {r.products.map(p => <option key={p.id} value={p.id}>{p.title}</option>)}
+                            </select>
+                          )}
+                          <button
+                            onClick={() => publish(r)}
+                            disabled={publishing === r.id || r.products.length === 0}
+                            style={{
+                              padding: '5px 12px', borderRadius: 8, border: 'none', fontSize: 12, fontWeight: 700,
+                              background: '#EC4899', color: '#fff', cursor: 'pointer',
+                            }}
+                          >
+                            {publishing === r.id ? 'Publishing…' : 'Approve & publish'}
+                          </button>
+                        </div>
+                      )
                     )}
                   </td>
                 </tr>

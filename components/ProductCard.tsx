@@ -38,6 +38,11 @@ export default function ProductCard({ product }: { product: Product }) {
         )}
       </div>
       <div style={{ padding: '14px 16px 18px' }}>
+        {product.sku && (
+          <div style={{ fontFamily: 'monospace', fontSize: 11, fontWeight: 700, color: '#EC4899', letterSpacing: '0.5px', marginBottom: 4 }}>
+            {product.sku}
+          </div>
+        )}
         <h3 style={{ fontSize: 15, fontWeight: 600, color: '#4A3040', marginBottom: 6, lineHeight: 1.3 }}>
           {product.title}
         </h3>

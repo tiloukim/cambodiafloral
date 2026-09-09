@@ -18,6 +18,9 @@ interface Row {
   rating: number | null
   comment: string | null
   consent: boolean
+  trafficSource: string | null
+  referrerHost: string | null
+  utmCampaign: string | null
   products: { id: string; title: string }[]
   published: { productId: string; approved: boolean }[]
 }
@@ -39,7 +42,7 @@ type PeriodKey = typeof PERIODS[number]['key']
 /** RFC 4180: quote every field, double any embedded quote. */
 function toCSV(rows: Row[]): string {
   const cell = (v: unknown) => `"${String(v ?? '').replace(/"/g, '""')}"`
-  const header = ['Order', 'Order date', 'Customer', 'Email', 'Order total (USD)', 'Source', 'Detail', 'Answered at', 'Rating', 'Feedback']
+  const header = ['Order', 'Order date', 'Customer', 'Email', 'Order total (USD)', 'Said (survey)', 'Detail', 'Answered at', 'Came from (measured)', 'Referrer', 'Campaign', 'Rating', 'Feedback']
   const body = rows.map(r => [
     `#${r.id.slice(0, 8)}`,
     r.shopDate,
@@ -49,6 +52,9 @@ function toCSV(rows: Row[]): string {
     r.source ? sourceLabel(r.source) : 'No answer',
     r.detail || '',
     r.answeredAt || '',
+    r.trafficSource || '',
+    r.referrerHost || '',
+    r.utmCampaign || '',
     r.rating ?? '',
     r.comment || '',
   ].map(cell).join(','))
@@ -243,7 +249,8 @@ export default function AdminSurvey() {
                 <th>Date</th>
                 <th>Customer</th>
                 <th>Order total</th>
-                <th>How they found us</th>
+                <th>Said (survey)</th>
+                <th>Came from (measured)</th>
                 <th>Feedback</th>
               </tr>
             </thead>
@@ -265,6 +272,23 @@ export default function AdminSurvey() {
                     {r.source
                       ? <span style={{ fontSize: 13, color: '#4A3040' }}>{sourceEmoji(r.source)} {sourceLabel(r.source, r.detail)}</span>
                       : <span style={{ fontSize: 12, color: '#C9A0B4' }}>No answer</span>}
+                  </td>
+                  <td>
+                    {r.trafficSource ? (
+                      <div>
+                        <span style={{ fontSize: 13, color: '#4A3040' }}>
+                          {sourceEmoji(r.trafficSource)} {r.trafficSource === 'direct' ? 'Direct / typed in' : sourceLabel(r.trafficSource)}
+                        </span>
+                        {r.referrerHost && (
+                          <div className="admin-sub-text" style={{ fontSize: 11 }}>{r.referrerHost}</div>
+                        )}
+                        {r.utmCampaign && (
+                          <div style={{ fontSize: 10, color: '#EC4899', fontWeight: 700 }}>{r.utmCampaign}</div>
+                        )}
+                      </div>
+                    ) : (
+                      <span style={{ fontSize: 12, color: '#C9A0B4' }}>&mdash;</span>
+                    )}
                   </td>
                   <td>
                     {r.rating ? (

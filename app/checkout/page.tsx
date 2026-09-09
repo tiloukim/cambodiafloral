@@ -8,6 +8,7 @@ import Footer from '@/components/Footer'
 import { useAuth } from '@/lib/auth-context'
 import { useCart } from '@/lib/cart-context'
 import { SOURCES } from '@/lib/attribution'
+import { getAttribution } from '@/lib/tracking'
 import {
   shopToday, formatShopDate, earliestDeliveryDate, isPastSameDayCutoff,
   shopTimeLabel, SHOP_TIME_ZONE_LABEL, SAME_DAY_CUTOFF_LABEL,
@@ -210,6 +211,7 @@ function CheckoutContent() {
           delivery_date: f.deliveryDate || null,
           delivery_time: f.deliveryTime || null,
           heard_from: f.heardFrom || null,
+          attribution: getAttribution(),
           heard_from_detail: f.heardFrom === 'other' ? (f.heardFromDetail || null) : null,
           card_message: f.cardMessage || null,
           promo_code: f.promoCode,

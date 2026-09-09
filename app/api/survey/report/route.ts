@@ -21,6 +21,9 @@ interface OrderRow {
   feedback_comment?: string | null
   feedback_at?: string | null
   feedback_consent?: boolean | null
+  traffic_source?: string | null
+  referrer_host?: string | null
+  utm_campaign?: string | null
   created_at: string
 }
 
@@ -84,6 +87,9 @@ export async function GET() {
       rating: o.feedback_rating ?? null,
       comment: o.feedback_comment || null,
       consent: o.feedback_consent === true,
+      trafficSource: o.traffic_source || null,
+      referrerHost: o.referrer_host || null,
+      utmCampaign: o.utm_campaign || null,
       products: productsByOrder.get(o.id) || [],
       published: publishedByOrder.get(o.id) || [],
     }))

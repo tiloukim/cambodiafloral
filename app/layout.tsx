@@ -6,6 +6,7 @@ import AdminAddButton from '@/components/AdminAddButton'
 import ChatWidget from '@/components/ChatWidget'
 import TelegramButton from '@/components/TelegramButton'
 import { GoogleAnalytics } from '@/components/GoogleAnalytics'
+import AttributionTracker from '@/components/AttributionTracker'
 import './globals.css'
 
 const dmSans = DM_Sans({
@@ -97,6 +98,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         />
       </head>
       <body>
+        <AttributionTracker />
         <AuthProvider>
           <CartProvider>
             {children}

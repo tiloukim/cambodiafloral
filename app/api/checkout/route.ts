@@ -187,6 +187,28 @@ export async function POST(req: Request) {
 
   if (orderErr) return NextResponse.json({ error: orderErr.message }, { status: 500 })
 
+  // Measured first-touch source, alongside the self-reported answer. Written
+  // separately and non-fatally: analytics must never cost someone their order.
+  if (body.attribution && typeof body.attribution === 'object') {
+    const a = body.attribution as Record<string, string | null>
+    const trim = (v: string | null | undefined, n = 500) => (v ? String(v).slice(0, n) : null)
+    const { error: attrErr } = await supabase
+      .from('cf_orders')
+      .update({
+        referrer: trim(a.referrer),
+        referrer_host: trim(a.referrer_host, 255),
+        landing_page: trim(a.landing_page, 255),
+        utm_source: trim(a.utm_source, 120),
+        utm_medium: trim(a.utm_medium, 120),
+        utm_campaign: trim(a.utm_campaign, 120),
+        traffic_source: trim(a.traffic_source, 40),
+      })
+      .eq('id', order.id)
+    if (attrErr) {
+      console.error('[checkout] could not record traffic source (run supabase/referrer_tracking.sql):', attrErr.message)
+    }
+  }
+
   // "How did you hear about us?" — written separately and non-fatally so a
   // missing column (migration not yet run) can never fail a real order.
   if (isSourceKey(body.heard_from)) {

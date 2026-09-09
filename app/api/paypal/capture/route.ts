@@ -126,7 +126,19 @@ export async function POST(req: Request) {
     // but sendOrderConfirmation swallows its own errors — a failed email must
     // never turn a captured payment into an error response.
     if (firstConfirmation) {
+      // Don't dangle a discount in front of someone who already claimed theirs.
+      let rewardAvailable = true
+      if (existingOrder.customer_id) {
+        const { data: customer } = await supabase
+          .from('cf_customers')
+          .select('survey_reward_code')
+          .eq('id', existingOrder.customer_id)
+          .maybeSingle()
+        rewardAvailable = !customer?.survey_reward_code
+      }
+
       await sendOrderConfirmation({
+        rewardAvailable,
         orderId: order_id,
         customerName: existingOrder.sender_name,
         customerEmail: existingOrder.sender_email,

@@ -1,4 +1,4 @@
-import { formatShopDate, SHOP_TIME_ZONE_LABEL } from '@/lib/timezone'
+import { formatShopDate, shopDateKey, SHOP_TIME_ZONE_LABEL } from '@/lib/timezone'
 import { SOURCES } from '@/lib/attribution'
 import { REWARD_PERCENT, REWARD_VALID_DAYS } from '@/lib/rewards'
 
@@ -202,6 +202,8 @@ export interface CustomerConfirmation {
   deliveryFee: number
   total: number
   askHowTheyFoundUs: boolean
+  /** False when this customer has already claimed the survey reward. */
+  rewardAvailable?: boolean
 }
 
 export function confirmationHTML(d: CustomerConfirmation): string {
@@ -227,12 +229,9 @@ export function confirmationHTML(d: CustomerConfirmation): string {
 
   // One-click attribution: each button records the answer and lands on a
   // thank-you page, so the customer never has to fill in a form.
-  const surveyHTML = d.askHowTheyFoundUs ? `
-    <div style="background:#FFF8FC;border:1px solid #FFE4EF;border-radius:12px;padding:18px 20px;margin:24px 0;">
-      <div style="font-size:15px;font-weight:700;color:#4A3040;margin-bottom:4px;">One quick question &mdash; how did you find us?</div>
-      <div style="font-size:13px;color:#9C7A8E;margin-bottom:14px;">One tap, and it helps us a lot. We're a small shop in Phnom Penh.</div>
-      ${SOURCES.map(src => `<a href="${SITE_URL}/survey?order=${encodeURIComponent(d.orderId)}&amp;source=${src.key}" style="display:inline-block;margin:0 6px 8px 0;padding:8px 14px;background:#fff;border:1px solid #FFD6E8;border-radius:50px;text-decoration:none;font-size:13px;font-weight:600;color:#4A3040;">${src.emoji} ${src.label}</a>`).join('')}
-    </div>` : ''
+  const surveyHTML = d.askHowTheyFoundUs
+    ? surveyButtons(d.orderId, d.rewardAvailable !== false)
+    : ''
 
   return `
   <div style="background:#FFF5F9;padding:24px 12px;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;">
@@ -348,12 +347,29 @@ function rewardBlock(code: string, expiresAt?: string): string {
     </div>`
 }
 
-function surveyButtons(orderId: string, intro: string): string {
+function surveyButtons(orderId: string, offerReward: boolean): string {
+  const buttons = SOURCES.map(src =>
+    `<a href="${SITE_URL}/survey?order=${encodeURIComponent(orderId)}&amp;source=${src.key}" style="display:inline-block;margin:0 6px 8px 0;padding:8px 14px;background:#fff;border:1px solid #FFD6E8;border-radius:50px;text-decoration:none;font-size:13px;font-weight:600;color:#4A3040;">${src.emoji} ${src.label}</a>`
+  ).join('')
+
+  // When there's a discount on the table, lead with it. Buried in body copy it
+  // reads as a footnote, and the whole point is that it's worth a tap.
+  if (offerReward) {
+    return `
+    <div style="background:linear-gradient(135deg,#FFF0F5,#FFE4EF);border:2px dashed #EC4899;border-radius:14px;padding:22px 20px;margin:24px 0;text-align:center;">
+      <div style="font-size:30px;line-height:1;">&#127873;</div>
+      <div style="font-size:22px;font-weight:800;color:#EC4899;margin:8px 0 2px;">Get ${REWARD_PERCENT}% off your next order</div>
+      <div style="font-size:14px;color:#7A5A6A;margin-bottom:16px;">Just tell us how you found us &mdash; one tap and the code is yours.</div>
+      <div>${buttons}</div>
+      <div style="font-size:12px;color:#9C7A8E;margin-top:8px;">We'll email your code straight away.</div>
+    </div>`
+  }
+
   return `
     <div style="background:#FFF8FC;border:1px solid #FFE4EF;border-radius:12px;padding:18px 20px;margin:24px 0;">
       <div style="font-size:15px;font-weight:700;color:#4A3040;margin-bottom:4px;">How did you find us?</div>
-      <div style="font-size:13px;color:#9C7A8E;margin-bottom:14px;">${intro}</div>
-      ${SOURCES.map(src => `<a href="${SITE_URL}/survey?order=${encodeURIComponent(orderId)}&amp;source=${src.key}" style="display:inline-block;margin:0 6px 8px 0;padding:8px 14px;background:#fff;border:1px solid #FFD6E8;border-radius:50px;text-decoration:none;font-size:13px;font-weight:600;color:#4A3040;">${src.emoji} ${src.label}</a>`).join('')}
+      <div style="font-size:13px;color:#9C7A8E;margin-bottom:14px;">One tap. It helps us know where to reach people like you.</div>
+      ${buttons}
     </div>`
 }
 
@@ -376,12 +392,7 @@ export function deliveredHTML(d: DeliveredEmail): string {
   const offer = d.rewardCode
     ? rewardBlock(d.rewardCode, d.rewardExpiresAt)
     : d.askHowTheyFoundUs
-      ? surveyButtons(
-          d.orderId,
-          d.rewardAvailable
-            ? `One tap, and we'll send you <strong>${REWARD_PERCENT}% off your next order</strong> as a thank-you.`
-            : "One tap. It helps us know where to reach people like you.",
-        )
+      ? surveyButtons(d.orderId, d.rewardAvailable)
       : ''
 
   return `
@@ -392,7 +403,7 @@ export function deliveredHTML(d: DeliveredEmail): string {
         <div style="font-size:40px;margin:10px 0 4px;">&#127804;</div>
         <h1 style="margin:6px 0 4px;font-size:24px;color:#4A3040;">Delivered!</h1>
         <p style="margin:0;font-size:14px;color:#7A5A6A;">
-          Your flowers reached ${esc(d.recipientName)}${d.deliveredOn ? ` on ${formatShopDate(d.deliveredOn)}` : ''}.
+          Your flowers reached ${esc(d.recipientName)}${d.deliveredOn ? ` on ${formatShopDate(shopDateKey(d.deliveredOn))}` : ''}.
         </p>
       </div>
 

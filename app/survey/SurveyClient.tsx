@@ -30,6 +30,7 @@ export default function SurveyClient() {
   const [justSaved, setJustSaved] = useState(false)
   const [savedComment, setSavedComment] = useState('')
   const [savedRating, setSavedRating] = useState(0)
+  const [savedConsent, setSavedConsent] = useState(false)
   // Set when one half is done and the other still stands between them and 5%.
   const [needsRating, setNeedsRating] = useState(false)
   const [needsSource, setNeedsSource] = useState(false)
@@ -59,8 +60,9 @@ export default function SurveyClient() {
     setSaving(false)
   }, [orderId])
 
-  const sendFeedback = useCallback(async (stars: number, text: string, mayShare = false) => {
-    if (!orderId || (!stars && !text.trim())) return
+  const sendFeedback = useCallback(async (stars: number, text: string, mayShare = false, consentOnly = false) => {
+    if (!orderId) return
+    if (!consentOnly && !stars && !text.trim()) return
     setSendingFeedback(true)
     setFeedbackError('')
     try {
@@ -84,6 +86,7 @@ export default function SurveyClient() {
         // difference between "saved" and "typed but not sent yet".
         setSavedComment(text.trim())
         setSavedRating(stars)
+        setSavedConsent(mayShare)
         setJustSaved(true)
       } else {
         const body = await res.json().catch(() => ({}))
@@ -116,7 +119,9 @@ export default function SurveyClient() {
   }, [initialRating, sendFeedback])
 
   // True when what's on screen differs from what the server confirmed.
-  const unsaved = feedbackSent && (comment.trim() !== savedComment || rating !== savedRating)
+  const unsaved = feedbackSent && (
+    comment.trim() !== savedComment || rating !== savedRating || consent !== savedConsent
+  )
 
   const card: React.CSSProperties = {
     maxWidth: 560, margin: '0 auto', background: '#fff', borderRadius: 16,
@@ -242,7 +247,14 @@ export default function SurveyClient() {
                 <input
                   type="checkbox"
                   checked={consent}
-                  onChange={e => setConsent(e.target.checked)}
+                  onChange={e => {
+                    // Save on tick. Waiting for the button made the checkbox
+                    // look agreed-to while nothing had been recorded — someone
+                    // could tick it, close the tab, and believe they'd said yes.
+                    const next = e.target.checked
+                    setConsent(next)
+                    sendFeedback(rating, comment, next, true)
+                  }}
                   style={{ marginTop: 3, accentColor: '#EC4899', width: 16, height: 16, flexShrink: 0 }}
                 />
                 <span style={{ fontSize: 12, color: '#7A5A6A', lineHeight: 1.6 }}>

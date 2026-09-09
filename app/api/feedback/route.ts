@@ -19,7 +19,10 @@ export async function POST(req: Request) {
   const hasRating = rating !== undefined && rating !== null
   const hasComment = typeof comment === 'string' && comment.trim().length > 0
 
-  if (!order_id || (!hasRating && !hasComment)) {
+  // Consent alone is a valid update: the checkbox saves the moment it's
+  // ticked, which can happen before anything is typed.
+  const hasConsent = typeof consent === 'boolean'
+  if (!order_id || (!hasRating && !hasComment && !hasConsent)) {
     return NextResponse.json({ error: 'Invalid request' }, { status: 400 })
   }
   if (hasRating && (!Number.isInteger(rating) || rating < 1 || rating > 5)) {

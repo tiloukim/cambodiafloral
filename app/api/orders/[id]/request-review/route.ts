@@ -3,7 +3,9 @@ import { createServiceClient } from '@/lib/supabase/server'
 import { isAdmin } from '@/lib/admin'
 import { sendReviewRequestEmail } from '@/lib/notify'
 
-const ELIGIBLE = ['confirmed', 'preparing', 'out_for_delivery', 'delivered']
+// Delivered only. Asking someone to review flowers that haven't arrived is
+// the fastest way to get a bad review of a fine bouquet.
+const ELIGIBLE = ['delivered']
 
 /** Ask one customer to review what they bought. Admin-triggered, never automatic. */
 export async function POST(_req: Request, { params }: { params: Promise<{ id: string }> }) {
@@ -16,13 +18,15 @@ export async function POST(_req: Request, { params }: { params: Promise<{ id: st
 
   const { data: order } = await supabase
     .from('cf_orders')
-    .select('id, status, sender_name, sender_email, review_requested_at, cf_order_items(product_id, title, image_url)')
+    .select('id, status, sender_name, sender_email, heard_from, review_requested_at, cf_order_items(product_id, title, image_url)')
     .eq('id', id)
     .maybeSingle()
 
   if (!order) return NextResponse.json({ error: 'Order not found' }, { status: 404 })
   if (!ELIGIBLE.includes(order.status)) {
-    return NextResponse.json({ error: 'Only paid orders can be reviewed' }, { status: 400 })
+    return NextResponse.json({
+      error: `This order is "${order.status.replace(/_/g, ' ')}". Wait until it's delivered — asking for a review before the flowers arrive tends to backfire.`,
+    }, { status: 400 })
   }
   if (!order.sender_email) {
     return NextResponse.json({ error: 'This order has no email address' }, { status: 400 })
@@ -43,6 +47,8 @@ export async function POST(_req: Request, { params }: { params: Promise<{ id: st
     customerName: order.sender_name,
     customerEmail: order.sender_email,
     items: items.map(i => ({ title: i.title, image_url: i.image_url })),
+    // One email, both asks: no reason to send a second one for the survey.
+    askHowTheyFoundUs: !order.heard_from,
   })
 
   await supabase

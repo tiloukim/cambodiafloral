@@ -492,6 +492,8 @@ export interface ReviewRequestEmail {
   customerName: string
   customerEmail: string
   items: { title: string; image_url?: string | null }[]
+  /** Include the "how did you find us?" buttons when they haven't answered. */
+  askHowTheyFoundUs?: boolean
 }
 
 /** "Would you review what you bought?" Never throws. */
@@ -519,6 +521,7 @@ export async function sendReviewRequestEmail(d: ReviewRequestEmail) {
         <div style="text-align:center;">
           <a href="${SITE_URL}/review/${encodeURIComponent(d.orderId)}" style="display:inline-block;background:#EC4899;color:#fff;text-decoration:none;padding:14px 32px;border-radius:50px;font-size:15px;font-weight:700;">Leave a review</a>
         </div>
+        ${d.askHowTheyFoundUs ? surveyButtons(d.orderId, true) : ''}
         <p style="font-size:12px;color:#C9A0B4;text-align:center;margin:16px 0 0;">
           Not interested? Just ignore this &mdash; we won't ask again.
         </p>

@@ -22,7 +22,7 @@ export async function POST(req: Request) {
 
   const { data: orders } = await supabase
     .from('cf_orders')
-    .select('id, status, sender_name, sender_email, review_requested_at, cf_order_items(product_id, title, image_url)')
+    .select('id, status, sender_name, sender_email, heard_from, review_requested_at, cf_order_items(product_id, title, image_url)')
     .in('status', ELIGIBLE)
     .order('created_at', { ascending: false })
 
@@ -61,6 +61,7 @@ export async function POST(req: Request) {
       items: (o.cf_order_items || [])
         .filter(i => i.product_id && !reviewed.has(i.product_id))
         .map(i => ({ title: i.title, image_url: i.image_url })),
+      askHowTheyFoundUs: !o.heard_from,
     })
     await supabase.from('cf_orders')
       .update({ review_requested_at: new Date().toISOString() }).eq('id', o.id)

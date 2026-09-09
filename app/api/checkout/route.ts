@@ -2,7 +2,10 @@ import { NextResponse } from 'next/server'
 import { createClient, createServiceClient } from '@/lib/supabase/server'
 import { notifyOrderAdmin } from '@/lib/notify'
 import { evaluatePromo, type PromoCode } from '@/lib/promo'
-import { shopToday, formatShopDate, SHOP_TIME_ZONE_LABEL } from '@/lib/timezone'
+import {
+  earliestDeliveryDate, formatShopDate, isPastSameDayCutoff,
+  SHOP_TIME_ZONE_LABEL, SAME_DAY_CUTOFF_LABEL,
+} from '@/lib/timezone'
 
 const DELIVERY_FEE = 5
 const FREE_DELIVERY_THRESHOLD = 100
@@ -19,14 +22,17 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: 'No items in order' }, { status: 400 })
   }
 
-  // The delivery date is a Cambodia calendar date. Check it against today in
-  // Phnom Penh, not against the server's clock (Vercel runs in UTC) or the
-  // sender's — a date already gone at the shop can't be delivered.
+  // The delivery date is a Cambodia calendar date. Check it against the shop's
+  // clock in Phnom Penh, not the server's (Vercel runs in UTC) or the sender's.
+  // Past the 2PM cutoff the florist can no longer deliver same-day, so the
+  // earliest acceptable date rolls to tomorrow.
   if (body.delivery_date) {
-    const today = shopToday()
-    if (String(body.delivery_date) < today) {
+    const earliest = earliestDeliveryDate()
+    if (String(body.delivery_date) < earliest) {
       return NextResponse.json({
-        error: `That delivery date has already passed in Cambodia. It is ${formatShopDate(today)} in Phnom Penh (${SHOP_TIME_ZONE_LABEL}).`,
+        error: isPastSameDayCutoff()
+          ? `Same-day orders close at ${SAME_DAY_CUTOFF_LABEL} ${SHOP_TIME_ZONE_LABEL}. The earliest delivery date is now ${formatShopDate(earliest)}.`
+          : `That delivery date has already passed in Cambodia. The earliest delivery date is ${formatShopDate(earliest)} (${SHOP_TIME_ZONE_LABEL}).`,
       }, { status: 400 })
     }
   }

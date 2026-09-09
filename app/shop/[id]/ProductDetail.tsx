@@ -292,7 +292,7 @@ export default function ProductDetail() {
             }}>
               <p style={{ fontSize: 13, color: '#9C7A8E', lineHeight: 1.6 }}>
                 🌸 Free delivery in Phnom Penh for orders over $100<br />
-                💐 Same-day delivery available for orders placed before 2PM<br />
+                💐 Same-day delivery for orders placed before 2:00 PM Cambodia time<br />
                 🚚 Other provinces coming soon!
               </p>
             </div>

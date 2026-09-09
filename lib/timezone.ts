@@ -10,6 +10,11 @@
 export const SHOP_TIME_ZONE = 'Asia/Phnom_Penh'
 export const SHOP_TIME_ZONE_LABEL = 'Cambodia time (ICT)'
 
+// Published policy, stated across the site: order before 2:00 PM Cambodia time
+// for same-day delivery; after that the florist delivers the next morning.
+export const SAME_DAY_CUTOFF_HOUR = 14
+export const SAME_DAY_CUTOFF_LABEL = '2:00 PM'
+
 // en-CA formats as YYYY-MM-DD, which is what <input type="date"> speaks.
 const dateKeyFormat = new Intl.DateTimeFormat('en-CA', {
   timeZone: SHOP_TIME_ZONE,
@@ -46,4 +51,32 @@ export function formatShopDate(dateOnly: string): string {
   return d.toLocaleDateString('en-US', {
     weekday: 'short', month: 'short', day: 'numeric', year: 'numeric', timeZone: 'UTC',
   })
+}
+
+/** Shift a plain YYYY-MM-DD by whole days. Midday UTC keeps the arithmetic clear of any offset. */
+function addDays(dateOnly: string, days: number): string {
+  const d = new Date(`${dateOnly}T12:00:00Z`)
+  d.setUTCDate(d.getUTCDate() + days)
+  return d.toISOString().slice(0, 10)
+}
+
+/** Has the shop's same-day cutoff passed in Phnom Penh? */
+export function isPastSameDayCutoff(instant: Date = new Date()): boolean {
+  return shopHour(instant) >= SAME_DAY_CUTOFF_HOUR
+}
+
+/**
+ * The earliest date the florist can deliver: today in Phnom Penh before the
+ * 2PM cutoff, tomorrow after it.
+ */
+export function earliestDeliveryDate(instant: Date = new Date()): string {
+  const today = shopDateKey(instant)
+  return isPastSameDayCutoff(instant) ? addDays(today, 1) : today
+}
+
+/** The current time in Phnom Penh, e.g. "4:02 PM". */
+export function shopTimeLabel(instant: Date = new Date()): string {
+  return new Intl.DateTimeFormat('en-US', {
+    timeZone: SHOP_TIME_ZONE, hour: 'numeric', minute: '2-digit',
+  }).format(instant)
 }

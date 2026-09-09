@@ -26,6 +26,10 @@ export default function SurveyClient() {
   const [feedbackSent, setFeedbackSent] = useState(false)
   const [sendingFeedback, setSendingFeedback] = useState(false)
   const [consent, setConsent] = useState(false)
+  const [feedbackError, setFeedbackError] = useState('')
+  const [justSaved, setJustSaved] = useState(false)
+  const [savedComment, setSavedComment] = useState('')
+  const [savedRating, setSavedRating] = useState(0)
   const [detail, setDetail] = useState('')
 
   const submit = useCallback(async (source: string, detailText = '') => {
@@ -54,6 +58,7 @@ export default function SurveyClient() {
   const sendFeedback = useCallback(async (stars: number, text: string, mayShare = false) => {
     if (!orderId || (!stars && !text.trim())) return
     setSendingFeedback(true)
+    setFeedbackError('')
     try {
       const res = await fetch('/api/feedback', {
         method: 'POST',
@@ -65,10 +70,29 @@ export default function SurveyClient() {
           consent: mayShare,
         }),
       })
-      if (res.ok) setFeedbackSent(true)
-    } catch { /* the thank-you stands either way */ }
+      if (res.ok) {
+        setFeedbackSent(true)
+        // Record exactly what the server now holds, so the form can tell the
+        // difference between "saved" and "typed but not sent yet".
+        setSavedComment(text.trim())
+        setSavedRating(stars)
+        setJustSaved(true)
+      } else {
+        const body = await res.json().catch(() => ({}))
+        setFeedbackError(body.error || 'We could not save that. Please try again.')
+      }
+    } catch {
+      setFeedbackError('We could not reach the server. Please check your connection.')
+    }
     setSendingFeedback(false)
   }, [orderId])
+
+  // Let the confirmation fade rather than sit there forever.
+  useEffect(() => {
+    if (!justSaved) return
+    const t = setTimeout(() => setJustSaved(false), 3000)
+    return () => clearTimeout(t)
+  }, [justSaved])
 
   // Arriving from the email's one-click link records the answer immediately.
   useEffect(() => {
@@ -82,6 +106,9 @@ export default function SurveyClient() {
       sendFeedback(initialRating, '')
     }
   }, [initialRating, sendFeedback])
+
+  // True when what's on screen differs from what the server confirmed.
+  const unsaved = feedbackSent && (comment.trim() !== savedComment || rating !== savedRating)
 
   const card: React.CSSProperties = {
     maxWidth: 560, margin: '0 auto', background: '#fff', borderRadius: 16,
@@ -214,8 +241,22 @@ export default function SurveyClient() {
                     cursor: (rating || comment.trim()) ? 'pointer' : 'not-allowed',
                   }}
                 >
-                  {feedbackSent ? 'Update feedback' : 'Send feedback'}
+                  {sendingFeedback ? 'Saving…' : unsaved ? 'Save my feedback' : feedbackSent ? 'Update feedback' : 'Send feedback'}
                 </button>
+
+                {/* Every save says so. Silence used to be indistinguishable
+                    from failure, which is exactly how this read as broken. */}
+                <div style={{ minHeight: 20, marginTop: 8, fontSize: 12 }}>
+                  {feedbackError
+                    ? <span style={{ color: '#EF4444' }}>{feedbackError}</span>
+                    : justSaved
+                      ? <span style={{ color: '#059669', fontWeight: 700 }}>&#10003; Saved &mdash; thank you</span>
+                      : unsaved
+                        ? <span style={{ color: '#B08AA0' }}>You have unsaved changes</span>
+                        : feedbackSent
+                          ? <span style={{ color: '#9C7A8E' }}>Your feedback is saved.</span>
+                          : null}
+                </div>
               </div>
             </div>
 

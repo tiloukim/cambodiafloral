@@ -30,6 +30,9 @@ export default function SurveyClient() {
   const [justSaved, setJustSaved] = useState(false)
   const [savedComment, setSavedComment] = useState('')
   const [savedRating, setSavedRating] = useState(0)
+  // Set when one half is done and the other still stands between them and 5%.
+  const [needsRating, setNeedsRating] = useState(false)
+  const [needsSource, setNeedsSource] = useState(false)
   const [detail, setDetail] = useState('')
 
   const submit = useCallback(async (source: string, detailText = '') => {
@@ -45,7 +48,8 @@ export default function SurveyClient() {
       if (res.ok) {
         const body = await res.json().catch(() => ({}))
         setSaved(sourceLabel(source, detailText))
-        setReward(body.reward || null)
+        if (body.reward) setReward(body.reward)
+        setNeedsRating(Boolean(body.needsRating))
       }
       else if (res.status === 404 || res.status === 400) setBadLink(true)
       else setError('Sorry, we could not save that. Please try again in a moment.')
@@ -71,6 +75,10 @@ export default function SurveyClient() {
         }),
       })
       if (res.ok) {
+        const body = await res.json().catch(() => ({}))
+        if (body.reward) setReward(body.reward)
+        setNeedsSource(Boolean(body.needsSource))
+        if (!body.needsSource) setNeedsRating(false)
         setFeedbackSent(true)
         // Record exactly what the server now holds, so the form can tell the
         // difference between "saved" and "typed but not sent yet".
@@ -172,6 +180,16 @@ export default function SurveyClient() {
                 </div>
               </div>
             )}
+            {!reward && (needsRating || needsSource) && (
+              <div style={{ margin: '22px 0 4px', background: '#FFF8FC', border: '1px dashed #EC4899', borderRadius: 14, padding: '16px 18px' }}>
+                <div style={{ fontSize: 14, fontWeight: 700, color: '#4A3040' }}>&#127873; One step from 5% off</div>
+                <div style={{ fontSize: 13, color: '#7A5A6A', marginTop: 4, lineHeight: 1.6 }}>
+                  {needsRating
+                    ? 'Rate your order below and the discount is yours.'
+                    : 'Tell us how you found us above and the discount is yours.'}
+                </div>
+              </div>
+            )}
             {reward && (
               <div style={{ margin: '22px 0 4px', background: 'linear-gradient(135deg,#FFF0F5,#FFE4EF)', border: '1px solid #FFD6E8', borderRadius: 14, padding: '20px 18px' }}>
                 <div style={{ fontSize: 12, fontWeight: 700, color: '#EC4899', textTransform: 'uppercase', letterSpacing: 1 }}>
@@ -182,7 +200,8 @@ export default function SurveyClient() {
                   {reward.code}
                 </div>
                 <div style={{ fontSize: 12, color: '#9C7A8E', marginTop: 10 }}>
-                  {reward.isNew ? "We've emailed it to you as well. " : 'You earned this earlier. '}Enter it at checkout.
+                  {reward.isNew ? "We've emailed it to you as well. " : 'You earned this earlier. '}
+                  It&apos;s saved to your account and applies automatically at checkout.
                 </div>
               </div>
             )}

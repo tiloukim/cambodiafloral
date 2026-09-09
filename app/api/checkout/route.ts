@@ -3,6 +3,7 @@ import { createClient, createServiceClient } from '@/lib/supabase/server'
 import { notifyOrderAdmin } from '@/lib/notify'
 import { evaluatePromo, type PromoCode } from '@/lib/promo'
 import { isSourceKey } from '@/lib/attribution'
+import { findUsableReward } from '@/lib/rewards'
 import {
   earliestDeliveryDate, formatShopDate, isPastSameDayCutoff,
   SHOP_TIME_ZONE_LABEL, SAME_DAY_CUTOFF_LABEL,
@@ -103,31 +104,57 @@ export async function POST(req: Request) {
   // Apply promo code (authoritative server-side check)
   let discount = 0
   let appliedCode: string | null = null
-  if (body.promo_code) {
-    const code = String(body.promo_code).trim().toUpperCase()
+  let autoApplied = false
+
+  // The survey reward lives on the account, not in an email the customer has
+  // to keep. If they haven't typed a code of their own, use theirs for them.
+  let promoCodeToUse: string | null = body.promo_code ? String(body.promo_code) : null
+  if (!promoCodeToUse) {
+    const reward = await findUsableReward(supabase, customerId)
+    if (reward) {
+      promoCodeToUse = reward.code
+      autoApplied = true
+    }
+  }
+
+  if (promoCodeToUse) {
+    const code = promoCodeToUse.trim().toUpperCase()
     const { data: promo } = await supabase
       .from('cf_promo_codes')
       .select('*')
       .eq('code', code)
       .maybeSingle()
+
     const result = evaluatePromo(promo as PromoCode | null, subtotal, deliveryFee)
-    if (!result.ok) {
-      return NextResponse.json({ error: result.error || 'Invalid promo code' }, { status: 400 })
-    }
-    // First-time-customer codes: reject if this customer already has a paid order
-    if (promo?.first_order_only) {
+
+    // A first-order-only code is spent if they've already bought something.
+    let firstOrderOnlyFailure = false
+    if (result.ok && promo?.first_order_only) {
       const { count } = await supabase
         .from('cf_orders')
         .select('id', { count: 'exact', head: true })
         .eq('customer_id', customerId)
         .eq('status', 'confirmed')
-      if ((count || 0) > 0) {
-        return NextResponse.json({ error: 'This code is for first-time customers only' }, { status: 400 })
-      }
+      firstOrderOnlyFailure = (count || 0) > 0
     }
-    discount = result.discount
-    if (result.freeDelivery) deliveryFee = 0
-    appliedCode = code
+
+    const usable = result.ok && !firstOrderOnlyFailure
+
+    if (!usable && autoApplied) {
+      // We chose this code on the customer's behalf, so a problem with it is
+      // ours, not theirs: skip it silently rather than failing their order.
+      console.log('[checkout] account reward not applied:', result.error || 'first_order_only')
+    } else if (!usable) {
+      return NextResponse.json({
+        error: firstOrderOnlyFailure
+          ? 'This code is for first-time customers only'
+          : (result.error || 'Invalid promo code'),
+      }, { status: 400 })
+    } else {
+      discount = result.discount
+      if (result.freeDelivery) deliveryFee = 0
+      appliedCode = code
+    }
   }
 
   const total = Math.max(0, subtotal - discount + deliveryFee)

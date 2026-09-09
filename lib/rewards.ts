@@ -1,8 +1,10 @@
 import type { SupabaseClient } from '@supabase/supabase-js'
 
-// Completing the "how did you find us?" survey earns a discount on the next
-// order. One per customer, ever — the grant is recorded on cf_customers, and
-// the code itself is an ordinary single-use promo code.
+// Completing BOTH halves of the post-order questions — the star rating and the
+// "how did you find us?" answer — earns a discount on the next order. One per
+// customer, ever. The grant is recorded on cf_customers so it follows the
+// account: the code exists for the email, but the customer never has to find
+// it, because checkout applies it for them.
 
 export const REWARD_PERCENT = 5
 export const REWARD_VALID_DAYS = 90
@@ -103,4 +105,47 @@ export async function grantSurveyReward(
   }
 
   return { code, isNew: true, expiresAt }
+}
+
+export interface RewardEligibility {
+  heard_from?: string | null
+  feedback_rating?: number | null
+}
+
+/**
+ * Both halves must be done. A rating alone says nothing about where they came
+ * from; a source alone says nothing about how it went.
+ */
+export function hasCompletedBoth(order: RewardEligibility): boolean {
+  return Boolean(order.heard_from) && Boolean(order.feedback_rating)
+}
+
+/**
+ * The customer's reward code, if they have one that is still usable. Returns
+ * null once it's spent or expired, so checkout never applies a dead code.
+ */
+export async function findUsableReward(
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  supabase: SupabaseClient<any, any, any>,
+  customerId: string,
+): Promise<{ code: string; percent: number; expiresAt: string | null } | null> {
+  const { data: customer } = await supabase
+    .from('cf_customers')
+    .select('survey_reward_code')
+    .eq('id', customerId)
+    .maybeSingle()
+
+  if (!customer?.survey_reward_code) return null
+
+  const { data: promo } = await supabase
+    .from('cf_promo_codes')
+    .select('code, discount_value, max_uses, used_count, expires_at, active')
+    .eq('code', customer.survey_reward_code)
+    .maybeSingle()
+
+  if (!promo || !promo.active) return null
+  if (promo.max_uses != null && promo.used_count >= promo.max_uses) return null
+  if (promo.expires_at && new Date(promo.expires_at).getTime() < Date.now()) return null
+
+  return { code: promo.code, percent: Number(promo.discount_value), expiresAt: promo.expires_at }
 }

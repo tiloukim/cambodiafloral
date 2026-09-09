@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server'
 import { createServiceClient } from '@/lib/supabase/server'
 import { isSourceKey, sourceLabel } from '@/lib/attribution'
-import { grantSurveyReward } from '@/lib/rewards'
+import { grantSurveyReward, hasCompletedBoth } from '@/lib/rewards'
 import { sendRewardEmail } from '@/lib/notify'
 
 // Records "how did you hear about us?" for one order. Public on purpose: the
@@ -27,7 +27,7 @@ export async function POST(req: Request) {
 
   const { data: order } = await supabase
     .from('cf_orders')
-    .select('id, heard_from, customer_id, sender_name, sender_email')
+    .select('id, heard_from, feedback_rating, customer_id, sender_name, sender_email')
     .eq('id', order_id)
     .maybeSingle()
 
@@ -49,10 +49,12 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: 'Could not save your answer' }, { status: 500 })
   }
 
-  // Thank them with a one-per-customer discount on their next order. A repeat
-  // answer returns the code they already have rather than minting another.
+  // Thank them with a one-per-customer discount on their next order — but only
+  // once both halves are done. A repeat answer returns the code they already
+  // have rather than minting another.
   let reward: Awaited<ReturnType<typeof grantSurveyReward>> = null
-  if (order.customer_id) {
+  const bothDone = hasCompletedBoth({ heard_from: source, feedback_rating: order.feedback_rating })
+  if (order.customer_id && bothDone) {
     reward = await grantSurveyReward(supabase, order.customer_id)
     if (reward?.isNew) {
       await sendRewardEmail({
@@ -68,5 +70,7 @@ export async function POST(req: Request) {
     ok: true,
     label: sourceLabel(source, detail),
     reward: reward ? { code: reward.code, isNew: reward.isNew } : null,
+    // Tells the page what's still missing before the discount unlocks.
+    needsRating: !order.feedback_rating,
   })
 }

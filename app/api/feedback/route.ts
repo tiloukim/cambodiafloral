@@ -1,5 +1,7 @@
 import { NextResponse } from 'next/server'
 import { createServiceClient } from '@/lib/supabase/server'
+import { grantSurveyReward, hasCompletedBoth } from '@/lib/rewards'
+import { sendRewardEmail } from '@/lib/notify'
 
 // Records the customer's rating and comment for one order. Public for the same
 // reason the survey endpoint is: it's reached from a one-click link in an email
@@ -28,7 +30,7 @@ export async function POST(req: Request) {
 
   const { data: order } = await supabase
     .from('cf_orders')
-    .select('id')
+    .select('id, heard_from, feedback_rating, customer_id, sender_name, sender_email')
     .eq('id', order_id)
     .maybeSingle()
 
@@ -52,5 +54,27 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: 'Could not save your feedback' }, { status: 500 })
   }
 
-  return NextResponse.json({ ok: true })
+  // A rating can be the half that completes the pair, so try the grant here too.
+  const effectiveRating = hasRating ? rating : order.feedback_rating
+  let reward: Awaited<ReturnType<typeof grantSurveyReward>> = null
+  const bothDone = hasCompletedBoth({ heard_from: order.heard_from, feedback_rating: effectiveRating })
+
+  if (order.customer_id && bothDone) {
+    reward = await grantSurveyReward(supabase, order.customer_id)
+    if (reward?.isNew) {
+      await sendRewardEmail({
+        customerName: order.sender_name,
+        customerEmail: order.sender_email,
+        code: reward.code,
+        expiresAt: reward.expiresAt,
+      })
+    }
+  }
+
+  return NextResponse.json({
+    ok: true,
+    reward: reward ? { code: reward.code, isNew: reward.isNew } : null,
+    // What's still outstanding before the discount unlocks.
+    needsSource: !order.heard_from,
+  })
 }

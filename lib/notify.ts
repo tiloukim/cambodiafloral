@@ -343,7 +343,7 @@ function rewardBlock(code: string, expiresAt?: string): string {
       <div style="font-size:13px;font-weight:700;color:#EC4899;text-transform:uppercase;letter-spacing:1px;">Your thank-you gift</div>
       <div style="font-size:15px;color:#7A5A6A;margin:8px 0 14px;">${REWARD_PERCENT}% off your next order</div>
       <div style="display:inline-block;background:#fff;border:2px dashed #EC4899;border-radius:10px;padding:12px 22px;font-family:monospace;font-size:20px;font-weight:800;color:#4A3040;letter-spacing:2px;">${esc(code)}</div>
-      <div style="font-size:12px;color:#9C7A8E;margin-top:12px;">Enter it at checkout. Valid until ${expiry}.</div>
+      <div style="font-size:12px;color:#9C7A8E;margin-top:12px;">It's saved to your account and applies automatically at checkout &mdash; the code is just a backup. Valid until ${expiry}.</div>
     </div>`
 }
 
@@ -359,9 +359,9 @@ function surveyButtons(orderId: string, offerReward: boolean): string {
     <div style="background:linear-gradient(135deg,#FFF0F5,#FFE4EF);border:2px dashed #EC4899;border-radius:14px;padding:22px 20px;margin:24px 0;text-align:center;">
       <div style="font-size:30px;line-height:1;">&#127873;</div>
       <div style="font-size:22px;font-weight:800;color:#EC4899;margin:8px 0 2px;">Get ${REWARD_PERCENT}% off your next order</div>
-      <div style="font-size:14px;color:#7A5A6A;margin-bottom:16px;">Just tell us how you found us &mdash; one tap and the code is yours.</div>
+      <div style="font-size:14px;color:#7A5A6A;margin-bottom:16px;">Tell us how you found us and rate your order &mdash; do both and the discount is yours.</div>
       <div>${buttons}</div>
-      <div style="font-size:12px;color:#9C7A8E;margin-top:8px;">We'll email your code straight away.</div>
+      <div style="font-size:12px;color:#9C7A8E;margin-top:8px;">Saved to your account and applied automatically next time &mdash; no code to remember.</div>
     </div>`
   }
 

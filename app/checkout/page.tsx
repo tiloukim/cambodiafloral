@@ -82,6 +82,33 @@ function CheckoutContent() {
   const effectiveDelivery = promo?.freeDelivery ? 0 : deliveryFee
   const grandTotal = Math.max(0, total - discount + effectiveDelivery)
 
+  // A reward earned by answering both questions is attached to the account, so
+  // pull it in automatically — the customer shouldn't have to find an email.
+  const [autoReward, setAutoReward] = useState(false)
+  useEffect(() => {
+    if (promo) return
+    let cancelled = false
+    fetch('/api/promo/reward')
+      .then(r => r.json())
+      .then(d => {
+        if (cancelled || !d.reward) return
+        return fetch('/api/promo/validate', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ code: d.reward.code, subtotal: total, delivery_fee: deliveryFee }),
+        })
+          .then(r => r.json())
+          .then(v => {
+            if (cancelled || !v.ok) return
+            setPromo({ code: v.code, discount: v.discount, freeDelivery: v.freeDelivery, label: v.label })
+            setAutoReward(true)
+          })
+      })
+      .catch(() => {})
+    return () => { cancelled = true }
+    // Re-checks when the cart total changes, since the discount depends on it.
+  }, [total, deliveryFee, promo])
+
   const applyPromo = async () => {
     const code = promoInput.trim()
     if (!code) return
@@ -110,6 +137,7 @@ function CheckoutContent() {
     setPromo(null)
     setPromoInput('')
     setPromoError('')
+    setAutoReward(false)
   }
 
   const searchParams = useSearchParams()
@@ -449,6 +477,11 @@ function CheckoutContent() {
                   <div style={{ fontSize: 13 }}>
                     <span style={{ fontWeight: 700, color: '#065F46', fontFamily: 'monospace' }}>{promo.code}</span>
                     <span style={{ color: '#059669', marginLeft: 8 }}>{promo.label}</span>
+                    {autoReward && (
+                      <div style={{ fontSize: 11, color: '#059669', marginTop: 2 }}>
+                        &#127873; Your thank-you discount, applied automatically
+                      </div>
+                    )}
                   </div>
                   <button onClick={removePromo} style={{ background: 'none', border: 'none', color: '#9C7A8E', fontSize: 12, fontWeight: 600, cursor: 'pointer' }}>Remove</button>
                 </div>

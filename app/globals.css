@@ -505,21 +505,22 @@ body {
     padding: 10px 14px; margin-bottom: 12px;
   }
   .admin-table > tbody > tr:hover { background: #fff; }
+  /* Label above, content below — never side by side. A cell holds several
+     elements (a recipient is a name, phone, address, city and date), and a
+     flex row turns each of them into its own narrow column: "Sok Sethika"
+     rendered one letter per line. Block flow lets them stack as written. */
   .admin-table > tbody > tr > td {
-    border: none; border-bottom: 1px solid #FFF0F5; padding: 8px 0;
-    display: flex; gap: 12px; align-items: flex-start; justify-content: space-between;
+    border: none; border-bottom: 1px solid #FFF0F5; padding: 10px 0;
+    display: block;
   }
   .admin-table > tbody > tr > td:last-child { border-bottom: none; }
   .admin-table > tbody > tr > td[data-label]::before {
     content: attr(data-label);
-    flex: 0 0 30%;
+    display: block; margin-bottom: 4px;
     font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: .4px;
-    color: #9C7A8E; padding-top: 2px;
+    color: #9C7A8E;
   }
-  .admin-table > tbody > tr > td > * { min-width: 0; }
-  /* The money breakdown is a table in its own right — full width, label above. */
-  .admin-table > tbody > tr > td[data-label="Total"] { display: block; }
-  .admin-table > tbody > tr > td[data-label="Total"]::before { display: block; margin-bottom: 4px; }
+  .admin-table > tbody > tr > td > * { max-width: 100%; }
   .admin-section-header { flex-wrap: wrap; gap: 8px; }
 }
 
@@ -532,4 +533,10 @@ body {
   .admin-sub-text { overflow-wrap: anywhere; }
   /* Inputs and selects default to a fixed intrinsic width. */
   .admin-table input, .admin-table select, .admin-table textarea { max-width: 100%; min-width: 0; }
+}
+
+/* Inline blocks inside admin cells shouldn't sit beside their siblings. */
+@media (max-width: 768px) {
+  .admin-table > tbody > tr > td > div { display: block; }
+  .admin-table > tbody > tr > td table { width: 100%; }
 }

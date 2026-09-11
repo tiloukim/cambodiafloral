@@ -500,9 +500,12 @@ body {
   .admin-table > thead { display: none; }
   .admin-table, .admin-table > tbody, .admin-table > tbody > tr,
   .admin-table > tbody > tr > td { display: block; width: 100%; }
+  /* Each order is a card with its own header, so scrolling a long list you
+     always know which order you're looking at and where the last one ended. */
   .admin-table > tbody > tr {
-    background: #fff; border: 1px solid #FFE4EF; border-radius: 12px;
-    padding: 10px 14px; margin-bottom: 12px;
+    background: #fff; border: 1px solid #FFD6E8; border-radius: 14px;
+    padding: 0; margin: 0 0 22px; overflow: hidden;
+    box-shadow: 0 2px 10px rgba(74, 48, 64, .07);
   }
   .admin-table > tbody > tr:hover { background: #fff; }
   /* Label above, content below — never side by side. A cell holds several
@@ -510,7 +513,7 @@ body {
      flex row turns each of them into its own narrow column: "Sok Sethika"
      rendered one letter per line. Block flow lets them stack as written. */
   .admin-table > tbody > tr > td {
-    border: none; border-bottom: 1px solid #FFF0F5; padding: 10px 0;
+    border: none; border-bottom: 1px solid #FFF0F5; padding: 10px 14px;
     display: block;
   }
   .admin-table > tbody > tr > td:last-child { border-bottom: none; }
@@ -539,4 +542,23 @@ body {
 @media (max-width: 768px) {
   .admin-table > tbody > tr > td > div { display: block; }
   .admin-table > tbody > tr > td table { width: 100%; }
+}
+
+/* The order number becomes the card's header bar. */
+@media (max-width: 768px) {
+  .admin-table > tbody > tr > td[data-label="Order"] {
+    background: linear-gradient(135deg, #FFF0F5, #FFE4EF);
+    border-bottom: 1px solid #FFD6E8;
+    padding: 12px 14px;
+  }
+  .admin-table > tbody > tr > td[data-label="Order"]::before {
+    font-size: 9px; color: #C9A0B4; margin-bottom: 2px;
+  }
+  .admin-table > tbody > tr > td[data-label="Order"] a { font-size: 16px !important; font-weight: 800 !important; }
+  /* Status reads as a state, so give it room at the top of the body. */
+  .admin-table > tbody > tr > td[data-label="Status"] { padding-top: 12px; }
+  /* Actions close the card off. */
+  .admin-table > tbody > tr > td[data-label="Actions"] {
+    background: #FFFBFC; border-top: 1px solid #FFE4EF; padding: 12px 14px;
+  }
 }

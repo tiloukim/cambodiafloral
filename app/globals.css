@@ -39,7 +39,7 @@ body {
 .admin-nav-item.active { background: #DB2777; color: #fff; font-weight: 600; }
 .admin-sidebar-footer { padding: 12px 10px; border-top: 1px solid #FFD6E8; }
 .admin-logout-btn { width: 100%; padding: 8px; border-radius: 8px; font-size: 12px; font-weight: 600; background: #FFF0F5; color: #DB2777; border: 1px solid #FFD6E8; cursor: pointer; margin-top: 4px; }
-.admin-main { flex: 1; margin-left: 240px; background: #FFFBF9; }
+.admin-main { flex: 1; min-width: 0; margin-left: 240px; background: #FFFBF9; }
 .admin-header { padding: 20px 32px; border-bottom: 1px solid #FFE4EF; display: flex; align-items: center; justify-content: space-between; background: #fff; gap: 12px; }
 .admin-page-title { font-size: 18px; font-weight: 700; color: #4A3040; }
 .admin-content { padding: 24px 32px; }
@@ -521,4 +521,15 @@ body {
   .admin-table > tbody > tr > td[data-label="Total"] { display: block; }
   .admin-table > tbody > tr > td[data-label="Total"]::before { display: block; margin-bottom: 4px; }
   .admin-section-header { flex-wrap: wrap; gap: 8px; }
+}
+
+/* Nothing in the admin may push the page wider than the phone. */
+@media (max-width: 768px) {
+  .admin-layout { max-width: 100vw; overflow-x: hidden; }
+  .admin-main, .admin-content { min-width: 0; max-width: 100%; }
+  /* Emails, addresses and URLs have no spaces to break at. */
+  .admin-table > tbody > tr > td { overflow-wrap: anywhere; word-break: break-word; }
+  .admin-sub-text { overflow-wrap: anywhere; }
+  /* Inputs and selects default to a fixed intrinsic width. */
+  .admin-table input, .admin-table select, .admin-table textarea { max-width: 100%; min-width: 0; }
 }

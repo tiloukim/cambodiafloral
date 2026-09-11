@@ -129,10 +129,10 @@ export default function AdminOrders() {
             <tbody>
               {orders.map(o => (
                 <tr key={o.id}>
-                  <td>
+                  <td data-label="Order">
                     <Link href={`/track?order=${o.id}`} target="_blank" style={{ fontWeight: 600, fontSize: 13, color: '#EC4899', textDecoration: 'none' }}>#{o.id.slice(0, 8)}</Link>
                   </td>
-                  <td>
+                  <td data-label="Customer">
                     <div style={{ fontWeight: 600 }}>{o.sender_name}</div>
                     <div className="admin-sub-text">{o.sender_email}</div>
                     {o.sender_phone && <div className="admin-sub-text">📞 {o.sender_phone}</div>}
@@ -142,7 +142,7 @@ export default function AdminOrders() {
                       </div>
                     )}
                   </td>
-                  <td>
+                  <td data-label="Items">
                     {o.items?.map((item, i) => {
                       const line = (
                         <>
@@ -174,7 +174,7 @@ export default function AdminOrders() {
                       </div>
                     )}
                   </td>
-                  <td>
+                  <td data-label="Recipient">
                     <div style={{ fontWeight: 600 }}>{o.recipient_name}</div>
                     <div className="admin-sub-text">📞 {o.recipient_phone}</div>
                     <div className="admin-sub-text">📍 {o.recipient_address}</div>
@@ -190,7 +190,7 @@ export default function AdminOrders() {
                       </div>
                     )}
                   </td>
-                  <td style={{ minWidth: 150 }}>
+                  <td data-label="Total" style={{ minWidth: 150 }}>
                     {/* What the customer paid, and what actually lands in the
                         account after PayPal takes its cut. */}
                     <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 11, lineHeight: 1.5 }}>
@@ -258,8 +258,8 @@ export default function AdminOrders() {
                       </tbody>
                     </table>
                   </td>
-                  <td><OrderStatusBadge status={o.status} /></td>
-                  <td>
+                  <td data-label="Status"><OrderStatusBadge status={o.status} /></td>
+                  <td data-label="Tracking">
                     {o.tracking_number ? (
                       <span style={{ fontSize: 12, fontFamily: 'monospace' }}>{o.tracking_number}</span>
                     ) : (
@@ -280,8 +280,8 @@ export default function AdminOrders() {
                       </div>
                     )}
                   </td>
-                  <td className="admin-sub-text">{new Date(o.created_at).toLocaleDateString()}</td>
-                  <td>
+                  <td data-label="Date" className="admin-sub-text">{new Date(o.created_at).toLocaleDateString()}</td>
+                  <td data-label="Actions">
                     <div style={{ display: 'flex', gap: 4, alignItems: 'center' }}>
                       <select
                         value={o.status}

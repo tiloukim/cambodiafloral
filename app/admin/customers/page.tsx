@@ -107,7 +107,7 @@ export default function AdminCustomers() {
             <tbody>
               {customers.map(c => (
                 <tr key={c.id} onClick={() => { if (editing !== c.id) setExpanded(expanded === c.id ? null : c.id) }} style={{ cursor: 'pointer' }}>
-                  <td>
+                  <td data-label="Customer">
                     <div style={{ fontWeight: 600 }}>{c.name}</div>
                     <div className="admin-sub-text">{c.email}</div>
                     {c.survey_reward_code && (
@@ -119,12 +119,12 @@ export default function AdminCustomers() {
                       </div>
                     )}
                   </td>
-                  <td style={{ fontSize: 13 }}>{c.phone || '--'}</td>
-                  <td>{c.country || '--'}</td>
-                  <td><strong>{c.order_count}</strong></td>
-                  <td style={{ color: '#10B981', fontWeight: 700 }}>${c.total_spent.toFixed(2)}</td>
-                  <td>{new Date(c.created_at).toLocaleDateString()}</td>
-                  <td onClick={e => e.stopPropagation()}>
+                  <td data-label="Phone" style={{ fontSize: 13 }}>{c.phone || '--'}</td>
+                  <td data-label="Country">{c.country || '--'}</td>
+                  <td data-label="Orders"><strong>{c.order_count}</strong></td>
+                  <td data-label="Total spent" style={{ color: '#10B981', fontWeight: 700 }}>${c.total_spent.toFixed(2)}</td>
+                  <td data-label="Since">{new Date(c.created_at).toLocaleDateString()}</td>
+                  <td data-label="Actions" onClick={e => e.stopPropagation()}>
                     <div style={{ display: 'flex', gap: 6 }}>
                       <button
                         onClick={() => startEdit(c)}

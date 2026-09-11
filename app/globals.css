@@ -487,3 +487,38 @@ body {
 .reviews-strip { display: flex; flex-wrap: wrap; justify-content: center; gap: 16px; }
 .reviews-strip > * { flex: 1 1 240px; max-width: 300px; min-width: 240px; }
 @media (max-width: 560px) { .reviews-strip > * { min-width: 0; max-width: none; flex-basis: 100%; } }
+
+/* ---- Admin tables on phones ----
+   A nine-column orders table can't be made to fit a 390px screen, and
+   sideways scrolling hides exactly the columns you need. Below 768px each
+   row becomes a card and each cell carries its own label, so the data
+   reads top-to-bottom with nothing off-screen. Cells opt in with
+   data-label; anything without one just stacks. */
+@media (max-width: 768px) {
+  .admin-table-wrap { overflow-x: visible; background: transparent; border: none; border-radius: 0; }
+  .admin-table { border-collapse: separate; border-spacing: 0; }
+  .admin-table > thead { display: none; }
+  .admin-table, .admin-table > tbody, .admin-table > tbody > tr,
+  .admin-table > tbody > tr > td { display: block; width: 100%; }
+  .admin-table > tbody > tr {
+    background: #fff; border: 1px solid #FFE4EF; border-radius: 12px;
+    padding: 10px 14px; margin-bottom: 12px;
+  }
+  .admin-table > tbody > tr:hover { background: #fff; }
+  .admin-table > tbody > tr > td {
+    border: none; border-bottom: 1px solid #FFF0F5; padding: 8px 0;
+    display: flex; gap: 12px; align-items: flex-start; justify-content: space-between;
+  }
+  .admin-table > tbody > tr > td:last-child { border-bottom: none; }
+  .admin-table > tbody > tr > td[data-label]::before {
+    content: attr(data-label);
+    flex: 0 0 30%;
+    font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: .4px;
+    color: #9C7A8E; padding-top: 2px;
+  }
+  .admin-table > tbody > tr > td > * { min-width: 0; }
+  /* The money breakdown is a table in its own right — full width, label above. */
+  .admin-table > tbody > tr > td[data-label="Total"] { display: block; }
+  .admin-table > tbody > tr > td[data-label="Total"]::before { display: block; margin-bottom: 4px; }
+  .admin-section-header { flex-wrap: wrap; gap: 8px; }
+}

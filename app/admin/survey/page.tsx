@@ -257,23 +257,23 @@ export default function AdminSurvey() {
             <tbody>
               {filtered.map(r => (
                 <tr key={r.id}>
-                  <td>
+                  <td data-label="Order">
                     <Link href={`/track?order=${r.id}`} target="_blank" style={{ fontWeight: 600, fontSize: 13, color: '#EC4899', textDecoration: 'none' }}>
                       #{r.id.slice(0, 8)}
                     </Link>
                   </td>
-                  <td className="admin-sub-text">{formatShopDate(r.shopDate)}</td>
-                  <td>
+                  <td data-label="Date" className="admin-sub-text">{formatShopDate(r.shopDate)}</td>
+                  <td data-label="Customer">
                     <div style={{ fontWeight: 600 }}>{r.customer}</div>
                     <div className="admin-sub-text">{r.email}</div>
                   </td>
-                  <td style={{ fontWeight: 600 }}>${r.total.toFixed(2)}</td>
-                  <td>
+                  <td data-label="Order total" style={{ fontWeight: 600 }}>${r.total.toFixed(2)}</td>
+                  <td data-label="Said (survey)">
                     {r.source
                       ? <span style={{ fontSize: 13, color: '#4A3040' }}>{sourceEmoji(r.source)} {sourceLabel(r.source, r.detail)}</span>
                       : <span style={{ fontSize: 12, color: '#C9A0B4' }}>No answer</span>}
                   </td>
-                  <td>
+                  <td data-label="Came from">
                     {r.trafficSource ? (
                       <div>
                         <span style={{ fontSize: 13, color: '#4A3040' }}>
@@ -290,7 +290,7 @@ export default function AdminSurvey() {
                       <span style={{ fontSize: 12, color: '#C9A0B4' }}>&mdash;</span>
                     )}
                   </td>
-                  <td>
+                  <td data-label="Feedback">
                     {r.rating ? (
                       <div>
                         <span style={{ color: '#F59E0B', fontSize: 14, letterSpacing: 1 }}>

@@ -1,4 +1,5 @@
 import { NextResponse } from 'next/server'
+import { revalidatePath } from 'next/cache'
 import { createServiceClient } from '@/lib/supabase/server'
 import { isAdmin } from '@/lib/admin'
 
@@ -19,6 +20,11 @@ export async function PATCH(req: Request, { params }: { params: Promise<{ id: st
     .single()
 
   if (error) return NextResponse.json({ error: error.message }, { status: 500 })
+
+  // /shop and the landing pages are statically cached, so an edit saved to the
+  // database would otherwise keep showing the old price until the next deploy.
+  purgeStorefront(id)
+
   return NextResponse.json(data)
 }
 
@@ -36,5 +42,18 @@ export async function DELETE(_req: Request, { params }: { params: Promise<{ id: 
     .eq('id', id)
 
   if (error) return NextResponse.json({ error: error.message }, { status: 500 })
+
+  // Hiding a product has to drop it from the cached grid too.
+  purgeStorefront(id)
+
   return NextResponse.json({ success: true })
+}
+
+/** Drop the cached storefront pages that show this product. */
+function purgeStorefront(id: string) {
+  revalidatePath('/')
+  revalidatePath('/shop')
+  revalidatePath(`/shop/${id}`)
+  // Landing pages list products too; a layout-level purge covers them all.
+  revalidatePath('/', 'layout')
 }

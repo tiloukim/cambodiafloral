@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect, useCallback, useRef } from 'react'
 import type { Product } from '@/lib/types'
+import BulkPricePanel from '@/components/BulkPricePanel'
 
 const CATEGORIES = ['bouquets', 'arrangements', 'baskets', 'wedding', 'sympathy', 'plants', 'cakes', 'gifts']
 const OCCASIONS = ['Birthday', 'Anniversary', "Valentine's", 'Congratulations', 'Get Well', 'Sympathy']
@@ -188,9 +189,12 @@ export default function AdminProducts() {
         <div className="admin-sub-text">
           {categoryFilter === 'all' ? products.length : products.filter(p => p.category === categoryFilter).length} of {products.length} products
         </div>
-        <button style={{ background: '#EC4899', color: '#fff', border: 'none', padding: '8px 18px', borderRadius: 10, fontSize: 13, fontWeight: 700, cursor: 'pointer' }} onClick={() => setShowAdd(!showAdd)}>
-          {showAdd ? 'Cancel' : '+ Add Product'}
-        </button>
+        <div style={{ display: 'flex', gap: 8, alignItems: 'center', flexWrap: 'wrap' }}>
+          <BulkPricePanel onDone={fetchProducts} />
+          <button style={{ background: '#EC4899', color: '#fff', border: 'none', padding: '8px 18px', borderRadius: 10, fontSize: 13, fontWeight: 700, cursor: 'pointer' }} onClick={() => setShowAdd(!showAdd)}>
+            {showAdd ? 'Cancel' : '+ Add Product'}
+          </button>
+        </div>
       </div>
 
       {showAdd && (
